@@ -46,6 +46,13 @@ RUN R -e "options(repos = \
   list(CRAN = 'https://packagemanager.posit.co/cran/2023-12-01/')); \
   install.packages('shiny'); \
   install.packages('shinydashboard'); \
+  install.packages('shinyWidgets'); \
+  install.packages('shinyBS'); \
+  install.packages('shinyTree'); \
+  install.packages('fansi'); \
+  install.packages('DT'); \
+  install.packages('reactable'); \
+  install.packages('leaflet'); \
 "  
 
 
