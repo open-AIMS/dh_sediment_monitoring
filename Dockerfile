@@ -57,6 +57,6 @@ RUN R -e "options(repos = \
 
 RUN apt-get clean
 
-COPY shiny shiny
+# COPY shiny shiny
 
 CMD ["R"]
