@@ -38,7 +38,6 @@ RUN R -e "options(repos = \
 RUN R -e "options(repos = \
   list(CRAN = 'https://packagemanager.posit.co/cran/2023-12-01/')); \
   remotes::install_github('open-AIMS/status@v0.0.1'); \
-  remotes::install_github('open-AIMS/sedMon@v0.0.1'); \
 "
 
 ## Shiny packages
