@@ -57,6 +57,11 @@ RUN R -e "options(repos = \
 
 RUN apt-get clean
 
-# COPY shiny shiny
+COPY R ~/R
+COPY parameters ~/parameters
+COPY md ~/md
 
-CMD ["R"]
+WORKDIR ~/
+COPY run.sh ~/run.sh
+
+CMD ["~/run.sh"]

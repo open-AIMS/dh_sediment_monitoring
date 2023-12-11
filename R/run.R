@@ -10,7 +10,7 @@ library(leaflet)
 library(shinyjs)
 
 #options(browser = "webmacs")
-setwd('~/Work/AIMS/Projects/Darwin Harbour Sediment Quality Shiny/dh_sediment_monitoring/R/')
+#setwd('~/Work/AIMS/Projects/Darwin Harbour Sediment Quality Shiny/dh_sediment_monitoring/R/')
 
 #unloadNamespace("sedMod")
 #detach(package:sedMod)
