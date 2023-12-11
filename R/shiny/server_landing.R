@@ -16,5 +16,5 @@ updateTextInput(session, "settings_run_stages_input", value = names(status_$stat
 
 output$settings_input_dir_files <- renderText({
   files <- list.files(path = status_$settings$input_path$item, pattern = ".*xlsx|.*csv")
-  str_wrap(paste0(files, collapse = "\t"), 45)
+  stringr::str_wrap(paste0(files, collapse = "\t"), 45)
   })

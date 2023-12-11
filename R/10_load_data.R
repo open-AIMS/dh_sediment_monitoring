@@ -72,6 +72,10 @@ read_input_data <- function(input_path) {
             replacements <- c("metals", "hydrocarbons", "total_carbons", "metadata", "notes")
             sheet_names <- stringr::str_replace_all(sheet_names, patterns, replacements)
             sheets <- setNames(sheets, sheet_names)
+            sheets[replacements] <-
+              lapply(sheets[replacements], function(x) { ## Remove columns whose names start with '...'
+                x |> dplyr::select(-starts_with("..."))
+              })
         } else if (file_types[i] == "csv") {
             sheets <- list(data = readr::read_csv(files[i]))
         }

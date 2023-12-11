@@ -22,4 +22,9 @@ library(status)
 source("shiny/ui.R")
 source("shiny/server.R")
 
-shinyApp(ui, server)
+runApp(
+        shinyApp(ui, server),
+        port = 3838,
+        host = "0.0.0.0",
+        launch.browser = TRUE
+)

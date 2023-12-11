@@ -20,6 +20,7 @@ RUN R -e "options(repos = \
   install.packages('readr'); \
   install.packages('stringr'); \
   install.packages('tidyr'); \
+  install.packages('tidyverse'); \
 "  
 
 RUN R -e "options(repos = \
@@ -46,6 +47,7 @@ RUN R -e "options(repos = \
   install.packages('shiny'); \
   install.packages('shinydashboard'); \
   install.packages('shinyWidgets'); \
+  install.packages('shinyjs'); \
   install.packages('shinyBS'); \
   install.packages('shinyTree'); \
   install.packages('fansi'); \
@@ -54,14 +56,23 @@ RUN R -e "options(repos = \
   install.packages('leaflet'); \
 "  
 
+## Other packages
+RUN R -e "options(repos = \
+  list(CRAN = 'https://packagemanager.posit.co/cran/2023-12-01/')); \
+  install.packages('markdown'); \
+"  
 
 RUN apt-get clean
 
-COPY R ~/R
-COPY parameters ~/parameters
-COPY md ~/md
+RUN mkdir ~/project
+COPY R/ ~/project/R
+COPY parameters/ ~/project/parameters
+COPY md/ ~/project/md
 
-WORKDIR ~/
-COPY run.sh ~/run.sh
+WORKDIR ~/project
 
-CMD ["~/run.sh"]
+COPY run.sh ~/project/run.sh
+
+ENTRYPOINT ["~/project/run.sh"]
+
+EXPOSE 3838

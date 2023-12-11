@@ -1,3 +1,3 @@
 #!/bin/sh
 cd R
-Rscript run.sh 
+Rscript run.R 
