@@ -1,0 +1,25 @@
+library(shiny)
+library(shinydashboard)
+library(shinyWidgets)
+library(shinyBS)
+library(shinyTree)
+library(fansi)
+library(DT)
+library(reactable)
+library(leaflet)
+library(shinyjs)
+
+#options(browser = "webmacs")
+setwd('~/Work/AIMS/Projects/Darwin Harbour Sediment Quality Shiny/dh_sediment_monitoring/R/')
+
+#unloadNamespace("sedMod")
+#detach(package:sedMod)
+#library(sedMod)
+unloadNamespace("status")
+#detach(package:status)
+library(status)
+
+source("shiny/ui.R")
+source("shiny/server.R")
+
+shinyApp(ui, server)
