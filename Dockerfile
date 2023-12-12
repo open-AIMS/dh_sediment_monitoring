@@ -62,17 +62,70 @@ RUN R -e "options(repos = \
   install.packages('markdown'); \
 "  
 
+## Install extra packages required for tidyverse 
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    libfontconfig1-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN R -e "options(repos = \
+  list(CRAN = 'https://packagemanager.posit.co/cran/2023-12-01/')); \
+  install.packages('tidyverse'); \
+  install.packages('testthat'); \
+  install.packages('assertthat'); \
+"  
+
+RUN R -e "options(repos = \
+  list(CRAN = 'https://packagemanager.posit.co/cran/2023-12-01/')); \
+  install.packages('bookdown'); \
+  install.packages('rmarkdown'); \
+"  
+
+
+## Install extra packages required for quarto 
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    curl \
+    gdebi-core \
+  && rm -rf /var/lib/apt/lists/*
+
+ARG QUARTO_VERSION="1.3.450"
+RUN curl -o quarto-linux-amd64.deb -L https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.deb
+RUN gdebi --non-interactive quarto-linux-amd64.deb
+
+RUN R -e "options(repos = \
+  list(CRAN = 'https://packagemanager.posit.co/cran/2023-12-01/')); \
+  install.packages('quarto'); \
+"  
+
+
+
+RUN R -e "options(repos = \
+  list(CRAN = 'https://packagemanager.posit.co/cran/2023-12-01/')); \
+  install.packages('sf'); \
+"  
+
+
+
 RUN apt-get clean
 
-RUN mkdir ~/project
-COPY R/ ~/project/R
-COPY parameters/ ~/project/parameters
-COPY md/ ~/project/md
+# USER users
 
-WORKDIR ~/project
+RUN mkdir /home/project
+RUN mkdir -p /home/project/input
 
-COPY run.sh ~/project/run.sh
+COPY R/ /home/project/R
+COPY parameters/ /home/project/parameters
+COPY md/ /home/project/md
 
-ENTRYPOINT ["~/project/run.sh"]
+WORKDIR /home/project
+
+COPY run.sh /home/project/run.sh
+
+# RUN cd ~/project
+
+ENTRYPOINT ["/home/project/run.sh"]
 
 EXPOSE 3838
