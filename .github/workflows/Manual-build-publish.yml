@@ -26,7 +26,7 @@ jobs:
           mv architects_daughter /usr/share/fonts/
           fc-cache -fv
           fc-list
-          fc-list | grep -i archi
+          fc-list -v | grep -i archi
           
       - name: Checkout repository
         uses: actions/checkout@v4
