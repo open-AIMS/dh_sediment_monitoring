@@ -36,6 +36,14 @@ jobs:
       # - name: Install R
       #   run: sudo apt-get install r-base pandoc make
 
+      - name: install R packages
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          cache-version: 2
+          extra-packages: |
+            any::rmarkdown
+
+
       - name: install tinytex
         uses: r-lib/actions/setup-tinytex@v2
       - run: tlmgr --version
