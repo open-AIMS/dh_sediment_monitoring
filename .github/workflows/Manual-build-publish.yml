@@ -51,7 +51,7 @@ jobs:
 
       # render manual
       - name: Make Site
-        run: make -i
+        run: make -i docs_local
 
       # Deploy site to gh-pages branch
       - name: Deploy
