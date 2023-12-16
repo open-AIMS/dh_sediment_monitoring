@@ -1,4 +1,4 @@
-DOCS_SRC_DIR  = $(addprefix , .)
+DOCS_SRC_DIR  = $(addprefix , docs)
 ifdef FILE
 DOCS_FILE = $(DOCS_SRC_DIR)/$(FILE)
 else

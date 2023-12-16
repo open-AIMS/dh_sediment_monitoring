@@ -50,7 +50,7 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
 
       # render manual
-      - name: Make Site
+      - name: Make manual
         run: make -i docs_local
 
       # Deploy site to gh-pages branch
