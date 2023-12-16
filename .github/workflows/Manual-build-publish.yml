@@ -25,6 +25,8 @@ jobs:
           unzip -d architects_daughter/ architects_daughter.zip
           mv architects_daughter /usr/share/fonts/
           fc-cache -fv
+          fc-list
+          fc-list | grep -i archi
           
       - name: Checkout repository
         uses: actions/checkout@v4
