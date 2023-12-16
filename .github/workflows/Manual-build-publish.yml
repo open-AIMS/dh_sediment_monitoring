@@ -1,0 +1,61 @@
+name: Render and publish the manual
+
+on:
+  workflow_dispatch:
+#  pull_request:
+#  push:
+#    branches: ['release']
+
+jobs:
+  render-manual:
+    runs-on: ubuntu-latest
+
+    name: ${{ matrix.config.r }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - { r: '4.3.2' }
+
+    steps:
+      - name: Install Google Fonts
+        run: |
+          wget -O Fira_Sans.zip https://fonts.google.com/download?family=Architechs%20Daughter
+          unzip -d architechs_daughter/ Architechs_Daughter.zip
+          mv architechs_daughter /usr/share/fonts/
+          fc-cache -fv
+          
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      # install R
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.R }}
+      # - name: Install R
+      #   run: sudo apt-get install r-base pandoc make
+
+      - name: install tinytex
+        uses: r-lib/actions/setup-tinytex@v2
+      - run: tlmgr --version
+
+      - name: Install additional LaTeX packages
+        run: |
+          tlmgr install titlesec
+          tlmgr list --only-installed
+
+      # install quarto
+      - name: Install quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      # render manual
+      - name: Make Site
+        run: make -i
+
+      # Deploy site to gh-pages branch
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: main
+          folder: docs
