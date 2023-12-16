@@ -156,7 +156,7 @@ by user.
 #| file: resources/diagram.tikz 
 #| out-width: 700px
 #| echo: false
-#| eval: false
+#| eval: true
 #| engine-opts:
 #|   template: "resources/tikz-standalone.tex"
 ```
