@@ -1,9 +1,9 @@
-This is XeTeX, Version 3.141592653-2.6-0.999995 (TeX Live 2023) (preloaded format=xelatex 2023.12.16)  16 DEC 2023 22:19
+This is XeTeX, Version 3.141592653-2.6-0.999995 (TeX Live 2023) (preloaded format=xelatex 2023.12.16)  16 DEC 2023 22:40
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**tikz19ef37a77d13.tex
-(./tikz19ef37a77d13.tex
+**tikz199214bf6bdc.tex
+(./tikz199214bf6bdc.tex
 LaTeX2e <2023-11-01>
 L3 programming layer <2023-12-11>
 (/home/runner/.TinyTeX/texmf-dist/tex/latex/base/article.cls
@@ -469,8 +469,8 @@ Package: fontspec-xetex 2022/01/15 v2.8a Font selection for XeLaTeX and LuaLaTeX
 Package: fontenc 2021/04/29 v2.0v Standard LaTeX package
 ) (/home/runner/.TinyTeX/texmf-dist/tex/latex/fontspec/fontspec.cfg))) (/home/runner/.TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarymatrix.code.tex
 File: tikzlibrarymatrix.code.tex 2023-01-15 v3.1.10 (3.1.10)
-) (./tikz19ef37a77d13.aux)
-\openout1 = `tikz19ef37a77d13.aux'.
+) (./tikz199214bf6bdc.aux)
+\openout1 = `tikz199214bf6bdc.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
 LaTeX Font Info:    ... okay on input line 13.
@@ -592,41 +592,70 @@ LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
 File: tikzlibraryquotes.code.tex 2023-01-15 v3.1.10 (3.1.10)
 )
 
-! Package fontspec Error: The font "ArchitectsDaughter" cannot be found.
+Package fontspec Info: Could not resolve font "ArchitectsDaughter-Regular/BI"
+(fontspec)             (it probably doesn't exist).
 
-For immediate help type H <return>.
- ...                                              
-                                                  
-l.34 \node [draw, Messy,Labels] (Container) {
-                                              
+
+Package fontspec Info: Could not resolve font "ArchitectsDaughter-Regular/B"
+(fontspec)             (it probably doesn't exist).
+
+
+Package fontspec Info: Could not resolve font "ArchitectsDaughter-Regular/I"
+(fontspec)             (it probably doesn't exist).
+
+
+Package fontspec Info: Font family 'ArchitectsDaughter-Regular(0)' created for
+(fontspec)             font 'ArchitectsDaughter-Regular' with options
+(fontspec)             [Scale=1].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->s*[1]"ArchitectsDaughter-Regular/OT:language=dflt;"
+(fontspec)             - 'small caps'  (m/sc) with NFSS spec.: 
+
+LaTeX Font Info:    Font shape `TU/ArchitectsDaughter-Regular(0)/m/n' will be
+(Font)              scaled to size 10.0pt on input line 35.
+File: resources/R.png Graphic file (type bmp)
+<resources/R.png>
+File: resources/Shiny.png Graphic file (type bmp)
+<resources/Shiny.png>
+File: resources/computer_9654401.png Graphic file (type bmp)
+<resources/computer_9654401.png>
+File: resources/Docker-Symbol1.png Graphic file (type bmp)
+<resources/Docker-Symbol1.png>
+File: resources/Packages-Symbol.png Graphic file (type bmp)
+<resources/Packages-Symbol.png>
+File: resources/Actions-Symbol.png Graphic file (type bmp)
+<resources/Actions-Symbol.png>
+File: resources/Repo.png Graphic file (type bmp)
+<resources/Repo.png>
+File: resources/Git_icon.svg.png Graphic file (type bmp)
+<resources/Git_icon.svg.png>
+File: resources/GitHub-Symbol.png Graphic file (type bmp)
+<resources/GitHub-Symbol.png>
+File: resources/computer_9654401.png Graphic file (type bmp)
+<resources/computer_9654401.png>
+
+Overfull \hbox (160.445pt too wide) in paragraph at lines 224--225
+[][] 
+ []
+
+Preview: Tightpage -32891 -32891 32891 32891
+[1] (./tikz199214bf6bdc.aux)
+ ***********
+LaTeX2e <2023-11-01>
+L3 programming layer <2023-12-11>
+ ***********
+ ) 
 Here is how much of TeX's memory you used:
- 19131 strings out of 476831
- 471260 string characters out of 5804429
- 1918106 words of memory out of 5000000
- 40763 multiletter control sequences out of 15000+600000
- 558085 words of font info for 38 fonts, out of 8000000 for 9000
+ 20049 strings out of 476831
+ 491978 string characters out of 5804429
+ 2001106 words of memory out of 5000000
+ 41657 multiletter control sequences out of 15000+600000
+ 558125 words of font info for 43 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 102i,3n,107p,604b,1003s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 102i,15n,107p,604b,2539s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-No pages of output.
-
-
-! kpathsea: Running mktextfm ArchitectsDaughter
-! /home/runner/.TinyTeX/texmf-dist/web2c/mktexnam: Could not map source abbreviation  for ArchitectsDaughter.
-! /home/runner/.TinyTeX/texmf-dist/web2c/mktexnam: Need to update ?
-! mktextfm: Running mf-nowin -progname=mf \mode:=ljfour; mag:=1; ; nonstopmode; input ArchitectsDaughter
-! This is METAFONT, Version 2.71828182 (TeX Live 2023) (preloaded base=mf)
-
-! kpathsea: Running mktexmf ArchitectsDaughter
-
-! ! I can't find file `ArchitectsDaughter'.
-! <*> ...=1; ; nonstopmode; input ArchitectsDaughter
-                                                  
-! Please type another input file name
-! ! Emergency stop.
-! <*> ...=1; ; nonstopmode; input ArchitectsDaughter
-                                                  
-! Transcript written on mfput.log.
-! grep: ArchitectsDaughter.log: No such file or directory
-! mktextfm: `mf-nowin -progname=mf \mode:=ljfour; mag:=1; ; nonstopmode; input ArchitectsDaughter' failed to make ArchitectsDaughter.tfm.
-! kpathsea: Appending font creation commands to missfont.log.
+Output written on tikz199214bf6bdc.pdf (1 page).
