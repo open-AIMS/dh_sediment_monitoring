@@ -22,7 +22,7 @@ jobs:
       - name: Install Google Fonts
         run: |
           wget -O architects_daughter.zip https://fonts.google.com/download?family=Architects%20Daughter
-          unzip -d architects_daughter/ Architects_Daughter.zip
+          unzip -d architects_daughter/ architects_daughter.zip
           mv architects_daughter /usr/share/fonts/
           fc-cache -fv
           
