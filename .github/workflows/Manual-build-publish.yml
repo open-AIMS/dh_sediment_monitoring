@@ -45,6 +45,7 @@ jobs:
           packages: |
             any::rmarkdown
             any::magick
+            any::pdftools
 
 
       - name: install tinytex
