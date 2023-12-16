@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Install Google Fonts
         run: |
-          wget -O Fira_Sans.zip https://fonts.google.com/download?family=Architechs%20Daughter
+          wget -O Fira_Sans.zip https://fonts.google.com/download?family=Architects%20Daughter
           unzip -d architechs_daughter/ Architechs_Daughter.zip
           mv architechs_daughter /usr/share/fonts/
           fc-cache -fv
