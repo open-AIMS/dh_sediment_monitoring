@@ -1,0 +1,208 @@
+﻿\usetikzlibrary{shapes,arrows,shadows,positioning,mindmap,backgrounds,decorations, calc,fit, decorations.text, decorations.pathreplacing,decorations.pathmorphing, shadings,shapes.geometric, shapes.multipart,patterns, quotes}
+%\tikzstyle{Labels} = [font={\fontspec[Scale=2]{Complete in Him}}]
+%\tikzstyle{Labels} = [font={\fontspec[Scale=1]{Desyrel}}]
+%\tikzstyle{Labels} = [font={\fontspec[Scale=1]{Chalkboard}}]
+%\tikzstyle{Labels} = [font={\fontspec[Scale=1]{Gaelle001}}]
+\tikzstyle{Labels} = [font={\fontspec[Scale=1]{ArchitectsDaughter}}]
+%\tikzstyle{Description} = [font={\fontspec[Scale=1]{ArchitectsDaughter}}]
+\tikzstyle{code} = [font=\ttfamily]
+\tikzstyle{Messy} = [decorate,decoration={random steps,segment length=3pt, amplitude=0.3pt},thick]
+%\tikzstyle{Messy} = []
+%\tikzstyle{Messy} = [decorate,decoration={random steps,segment length=10pt, amplitude=0.1pt},thick]
+\definecolor{Bin}{rgb}{0.9,0.9,0.2}%
+\definecolor{Docker}{rgb}{0.26,0.65,0.91}%
+\definecolor{OS}{rgb}{1,0.8,0.4}%
+\definecolor{cloud}{HTML}{89DCF0}%
+\definecolor{Push}{HTML}{0078D7}%
+
+\begin{tikzpicture}
+\node [draw, Messy,Labels] (Container) {
+\begin{tikzpicture}
+\node [anchor=west, inner sep=0] (title) {Docker container};
+\node [draw, Messy, anchor=west, fill=white, inner sep=2] at ($(title.west) + (0,-1.5)$) (Shiny) {
+   \scalebox{0.5}{\begin{tikzpicture}
+  \node [anchor=north west, inner sep=0,outer sep=0](R) {\includegraphics[height=20mm]{resources/R.png}}; 
+  \node [anchor=west, inner sep=0,outer sep=0, right=0.5cm of R]  (shiny) {\includegraphics[height=20mm]{resources/Shiny.png}}; 
+  \node [anchor=west, right=1cm of shiny, draw, Messy, minimum width=2.5cm, inner ysep = 0.5cm, fill=blue!20] (ui_box) {ui};
+  \node [anchor=west, below=1cm of ui_box, draw, Messy, minimum width=2.5cm, inner ysep = 0.5cm, fill=blue!20] (server_box) {server};
+  %\draw[latex-, Messy,postaction={decoration={text along path, reverse path, text align=center, text={path text}}, decorate}](ui_box.west) to [in=180, out=180] (server_box.west);
+  %\draw[-latex, Messy] (ui_box.east) to [in=0, out=0] (server_box.east) node[near start] (input_text) {input};
+\draw[-latex, Messy] (server_box.west) .. controls +(left:1cm)  and +(left:1cm).. (ui_box.west) node[midway,centered, fill=white] (output_text) {ouput};
+\draw[-latex, Messy] (ui_box.east) .. controls +(right:1cm)  and +(right:1cm).. (server_box.east) node[midway,centered, fill=white] (input_text) {input};
+
+   \end{tikzpicture}}};
+\node [draw, Messy, fill=yellow,yshift=-0.33cm, inner sep=-0.5pt, outer sep=0pt,fit=(Shiny.south west)(Shiny.south east), label={center:bins/libs}, minimum height=0.7cm] {};
+\end{tikzpicture}
+};
+\node [draw,Messy,fit=(Container.south west)(Container.south east), anchor=north,inner sep=-0.5pt,fill=Docker, minimum height=2em, Labels, label={[Labels]center:Docker Engine}, yshift=1pt] (Docker)  {};
+\node [draw,Messy,fit=(Docker.south west)(Docker.south east), anchor=north,inner sep=-0.5pt, outer sep=0pt,fill=OS, minimum height=2em, label={[Labels]center:Host OS}, yshift=1pt] (OS)  {};
+
+%\node [draw,  
+%inner x
+%fit = (Container.north west)(OS.south east), dashed, Messy] (A) {};
+ 
+\node [anchor=east] at ($($(Container.north west) ! 0.5 ! (OS.south west)$) + (-3cm, 0pt)$)  (Client) {
+\begin{tikzpicture}
+
+ \node [anchor=west](client) {\includegraphics[height=40mm]{resources/computer_9654401.png}};
+ \node[anchor=north, Labels, below=5pt of client] (client_text) {Client /  user};
+\end{tikzpicture}
+};
+
+\coordinate (ip_loc) at ($($(Container.west) !0.5! (Client.east)$ |- Client.east)$);
+
+\draw [draw, Messy, dashed] ($(Container.north east) + (0.5cm, 0.5cm)$) rectangle 
+($(ip_loc |- OS.south) +(0cm, -0.5cm)$);
+\node [Labels, fill=white] at (ip_loc) {:3838};
+\draw[-latex, Messy, line width = 2pt]  ($(Client.east |- ip_loc) + (0, -0.5cm)$) -- ($($(Container.west  |- ip_loc)$) + (-0.2cm, -0.5cm)$);
+\draw[latex-, Messy, line width = 2pt]  ($(Client.east |- ip_loc) + (0, 0.5cm)$) -- ($($(Container.west |- ip_loc)$) + (-0.2cm, 0.5cm)$);
+
+
+% Cloud ---------------------------------------------------------------------------------------------------
+\node [anchor = south east, inner sep=0pt] at ($(ip_loc) +(10cm, 4cm)$) (cloud) {
+\begin{tikzpicture}
+
+\draw[fill=cloud, draw=none, xshift=-780pt, yshift=720, scale=1.5]
+(517.2581pt, -483.5484pt) -- (517.2581pt, -483.5484pt)
+ -- (517.2581pt, -483.5484pt)
+-- (517.2581pt, -483.5484pt)
+ -- (517.2581pt, -483.5484pt)
+ -- (275.3226pt, -483.5484pt)
+ -- (275.3226pt, -483.5484pt)
+ -- (275.3226pt, -483.5484pt)
+ -- (275.3226pt, -483.5484pt) .. controls (248.6419pt, -483.5484pt) and (226.9355pt, -461.8419pt) .. (226.9355pt, -435.1613pt)
+ -- (226.9355pt, -435.1613pt)
+ -- (226.9355pt, -435.1613pt)
+ -- (226.9355pt, -435.1613pt) .. controls (226.9355pt, -408.4807pt) and (248.6419pt, -386.7742pt) .. (275.3226pt, -386.7742pt)
+ -- (275.3226pt, -386.7742pt)
+ -- (275.3226pt, -386.7742pt)
+ -- (275.3226pt, -386.7742pt) .. controls (275.9226pt, -386.7742pt) and (276.5032pt, -386.8226pt) .. (277.0936pt, -386.8613pt)
+ -- (277.0936pt, -386.8613pt)
+ -- (285.3581pt, -387.3645pt)
+ -- (285.3581pt, -387.3645pt)
+ -- (287.7678pt, -380.4645pt)
+ -- (287.7678pt, -380.4645pt)
+ -- (287.7678pt, -380.4645pt)
+ -- (287.7678pt, -380.4645pt) .. controls (294.5613pt, -361.0903pt) and (312.9pt, -348.0645pt) .. (333.3871pt, -348.0645pt)
+ -- (333.3871pt, -348.0645pt)
+ -- (333.3871pt, -348.0645pt)
+ -- (333.3871pt, -348.0645pt) .. controls (338.1pt, -348.0645pt) and (342.8032pt, -348.7613pt) .. (347.3419pt, -350.1355pt)
+ -- (347.3419pt, -350.1355pt)
+ -- (355.8pt, -352.6806pt)
+ -- (355.8pt, -352.6806pt)
+ -- (359.1097pt, -344.4935pt)
+ -- (359.1097pt, -344.4935pt)
+ -- (359.1097pt, -344.4935pt)
+ -- (359.1097pt, -344.4935pt) .. controls (372.5032pt, -311.3871pt) and (404.1774pt, -290pt) .. (439.8387pt, -290pt)
+ -- (439.8387pt, -290pt)
+ -- (439.8387pt, -290pt)
+ -- (439.8387pt, -290pt) .. controls (487.8678pt, -290pt) and (526.9355pt, -329.0774pt) .. (526.9355pt, -377.0968pt)
+ -- (526.9355pt, -377.0968pt)
+ -- (526.529pt, -387.1903pt)
+ -- (526.529pt, -387.1903pt)-- (517.2581pt, -483.5484pt)
+ -- (517.2581pt, -483.5484pt)
+ -- (275.3226pt, -483.5484pt)
+ -- (275.3226pt, -483.5484pt)
+ -- (275.3226pt, -483.5484pt)
+ -- (275.3226pt, -483.5484pt) .. controls (248.6419pt, -483.5484pt) and (226.9355pt, -461.8419pt) .. (226.9355pt, -435.1613pt)
+ -- (226.9355pt, -435.1613pt)
+ -- (226.9355pt, -435.1613pt)
+ -- (226.9355pt, -435.1613pt) .. controls (226.9355pt, -408.4807pt) and (248.6419pt, -386.7742pt) .. (275.3226pt, -386.7742pt)
+ -- (275.3226pt, -386.7742pt)
+ -- (275.3226pt, -386.7742pt)
+ -- (275.3226pt, -386.7742pt) .. controls (275.9226pt, -386.7742pt) and (276.5032pt, -386.8226pt) .. (277.0936pt, -386.8613pt)
+ -- (277.0936pt, -386.8613pt)
+ -- (285.3581pt, -387.3645pt)
+ -- (285.3581pt, -387.3645pt)
+ -- (287.7678pt, -380.4645pt)
+ -- (287.7678pt, -380.4645pt)
+ -- (287.7678pt, -380.4645pt)
+ -- (287.7678pt, -380.4645pt) .. controls (294.5613pt, -361.0903pt) and (312.9pt, -348.0645pt) .. (333.3871pt, -348.0645pt)
+ -- (333.3871pt, -348.0645pt)
+ -- (333.3871pt, -348.0645pt)
+ -- (333.3871pt, -348.0645pt) .. controls (338.1pt, -348.0645pt) and (342.8032pt, -348.7613pt) .. (347.3419pt, -350.1355pt)
+ -- (347.3419pt, -350.1355pt)
+ -- (355.8pt, -352.6806pt)
+ -- (355.8pt, -352.6806pt)
+ -- (359.1097pt, -344.4935pt)
+ -- (359.1097pt, -344.4935pt)
+ -- (359.1097pt, -344.4935pt)
+ -- (359.1097pt, -344.4935pt) .. controls (372.5032pt, -311.3871pt) and (404.1774pt, -290pt) .. (439.8387pt, -290pt)
+ -- (439.8387pt, -290pt)
+ -- (439.8387pt, -290pt)
+ -- (439.8387pt, -290pt) .. controls (487.8678pt, -290pt) and (526.9355pt, -329.0774pt) .. (526.9355pt, -377.0968pt)
+ -- (526.9355pt, -377.0968pt)
+ -- (526.529pt, -387.1903pt)
+ -- (526.529pt, -387.1903pt)
+ -- (533.2355pt, -389.5419pt)
+ -- (533.2355pt, -389.5419pt)
+ -- (533.2355pt, -389.5419pt)
+ -- (533.2355pt, -389.5419pt) .. controls (552.6194pt, -396.3355pt) and (565.6451pt, -414.6742pt) .. (565.6451pt, -435.1613pt)
+ -- (565.6451pt, -435.1613pt)
+ -- (565.6451pt, -435.1613pt)
+ -- (565.6451pt, -435.1613pt) .. controls (565.6451pt, -461.8419pt) and (543.9387pt, -483.5484pt) .. (517.2581pt, -483.5484pt) 
+ -- (533.2355pt, -389.5419pt)
+ -- (533.2355pt, -389.5419pt)
+ -- (533.2355pt, -389.5419pt)
+ -- (533.2355pt, -389.5419pt) .. controls (552.6194pt, -396.3355pt) and (565.6451pt, -414.6742pt) .. (565.6451pt, -435.1613pt)
+ -- (565.6451pt, -435.1613pt)
+ -- (565.6451pt, -435.1613pt)
+ -- (565.6451pt, -435.1613pt) .. controls (565.6451pt, -461.8419pt) and (543.9387pt, -483.5484pt) .. (517.2581pt, -483.5484pt) 
+ --cycle;
+
+% Actions
+\node [draw, Messy, inner sep = 5pt] (actions) {
+\begin{tikzpicture}
+ 
+% Build docker image
+\node [draw, Messy, fill = white, anchor = west, inner xsep = 5pt] (docker) {
+\begin{tikzpicture}
+ \node [anchor=west, inner sep=0pt,outer sep=0pt]  (Docker_icon) {\includegraphics[height=10mm, width=10mm]{resources/Docker-Symbol1.png}}; 
+  \node [anchor=west, Labels, right = 3pt of Docker_icon, text width ={4.5cm}] (Docker_image_text) {Build docker image};
+\end{tikzpicture}
+};
+% Publish package
+\node [draw, Messy, fill = white, anchor = north west, inner xsep = 5pt] at ($(docker.south west) +(0, -1pt)$) (publish) {
+\begin{tikzpicture}[node distance = 0pt]
+ \node [anchor=west, inner sep=0,outer sep=0, right=0.5cm of R]  (Package_icon) {\includegraphics[height=10mm, width=10mm]{resources/Packages-Symbol.png}}; 
+ \node [anchor=west, Labels, right = 3pt of Package_icon, text width={4.5cm}] (Package_image_text) {Publish package};
+\end{tikzpicture}
+};
+\node [anchor=east, inner sep=0pt,outer sep=0pt]  at ($($(docker.north west) !0.5! (publish.south west)$) +(-20pt, 0pt)$) (Actions_icon) {\includegraphics[height=20mm, width=20mm]{resources/Actions-Symbol.png}}; 
+\end{tikzpicture}
+};
+
+%Git repository
+\node [draw, anchor = south, Messy, inner sep = 5pt, above = 5pt of actions]  (github) {
+\begin{tikzpicture}
+% Host repository
+\node [draw, Messy, fill = white, anchor = west, inner xsep = 5pt] (repo) {
+\begin{tikzpicture}
+ \node [anchor=west, inner sep=0pt,outer sep=0pt]  (Docker_icon) {\includegraphics[height=10mm, width=10mm]{resources/Repo.png}}; 
+  \node [anchor=west, Labels, right = 3pt of Docker_icon, text width ={4.5cm}] (Docker_image_text) {Host repository};
+\end{tikzpicture}
+};
+\node [anchor=east, inner sep=0pt,outer sep=0pt]  at ($($(repo.north west) !0.5! (repo.south west)$) +(-20pt, 0pt)$) (Actions_icon) {\includegraphics[height=20mm, width=20mm]{resources/Git_icon.svg.png}}; 
+\end{tikzpicture}
+};
+
+ \node [anchor=east, inner sep=0pt,outer sep=0pt]  at ($($(github.north west) !0.5! (actions.south west)$) +(-40pt, 0pt)$)  (Github_icon) {\includegraphics[height=30mm]{resources/GitHub-Symbol.png}}; 
+
+\draw[-latex, Messy] (Github_icon.east) to [in=180, out=0] (actions.west);
+\draw[-latex, Messy] (Github_icon.east) to [in=180, out=0] (github.west);
+\end{tikzpicture}
+};
+
+\draw[-latex, Messy, Labels, line width = 2pt, draw=Push] ($(cloud.south) + (2.5cm, 0.55cm)$) .. controls +(south:1cm)  and +(north:2cm).. (Client.north) node[pos = 0.7,centered, fill=white, text = Push] (docker_pull_text) {docker pull};
+
+
+%\node [anchor=east] at ($($(Container.north west) ! 0.5 ! (OS.south west)$) + (-3cm, 0pt)$)  (Dev) {
+\node [anchor=east] at ($(cloud.north west) + (2cm, -2cm)$)  (Dev) {
+\begin{tikzpicture}
+ \node [anchor=west](dev) {\includegraphics[height=40mm]{resources/computer_9654401.png}};
+ \node[anchor=north, Labels, below=5pt of client] (dev_text) {Developer};
+\end{tikzpicture}
+};
+
+\draw[latex-, Messy, Labels, line width = 2pt, draw=Push] ($(cloud.west) + (3cm, 0cm)$) .. controls +(north:1cm)  and +(right:1cm).. (Dev.east) node[midway,centered, fill=white, text = Push] (git_push_text) {git push};
+\end{tikzpicture}

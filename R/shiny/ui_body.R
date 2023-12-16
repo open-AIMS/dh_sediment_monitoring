@@ -2,7 +2,7 @@ source("shiny/ui_body_landing.R")
 source("shiny/ui_body_dashboard.R")
 source("shiny/ui_body_data.R")
 source("shiny/ui_body_eda.R")
-source("shiny/ui_body_readme.R")
+source("shiny/ui_body_manual.R")
 
 
 tag_styles <- tags$style(HTML(
@@ -299,6 +299,6 @@ body <- dashboardBody(
                 data_tab,
                 ## EDA
                 eda_tab,
-                readme_tab
+                manual_tab
         )
 )

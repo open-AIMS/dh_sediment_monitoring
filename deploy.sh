@@ -14,8 +14,8 @@ container_port=3838
 # docker run -it --rm -p $container_port:$container_port --entrypoint R -v "$(pwd)"/input:/home/project/input $container_image
 docker run -it --rm -p $container_port:$container_port -v "$(pwd)"/input:/home/project/input $container_image
 
-# Get the host IP address
-#host_ip=$(hostname -I | awk '{print $1}')
+# # Get the host IP address
+# host_ip=$(hostname -I | awk '{print $1}')
 
 # Open Shiny app URL in browser
-#xdg-open "http://$host_ip:$container_port"
+xdg-open "http://localhist:$container_port"

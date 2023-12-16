@@ -6,7 +6,7 @@ sidebar <- dashboardSidebar(
     menuItem("Data", tabName = "data", icon = icon("file-excel")),
     menuItem("Exploratory Data Analysis", tabName = "eda", icon = icon("chart-column")),
     menuItem("Analysis", tabName = "analysis", icon = icon("calculator")),
-    menuItem("ReadMe", tabName = "readme", icon=icon("mortar-board")),
+    menuItem("Manual", tabName = "manual", icon=icon("mortar-board")),
  hr(),
     actionButton("runLoadCode", "Run Stage 2", icon = icon("play")),
     ## actionBttn("runLoadCode", "Run Stage 2", style = "jelly", color =  "primary", icon = icon("play")),
