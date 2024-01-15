@@ -9,3 +9,7 @@ To build
 To test run on local machine
 
 `docker run -it --rm dh_sediment_monitoring`
+
+To compile locally
+
+`make -i`

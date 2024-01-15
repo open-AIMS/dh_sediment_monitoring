@@ -18,4 +18,4 @@ docker run -it --rm -p $container_port:$container_port -v "$(pwd)"/input:/home/p
 # host_ip=$(hostname -I | awk '{print $1}')
 
 # Open Shiny app URL in browser
-xdg-open "http://localhist:$container_port"
+xdg-open "http://localhost:$container_port"
