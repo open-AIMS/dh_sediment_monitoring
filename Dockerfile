@@ -83,6 +83,10 @@ RUN R -e "options(repos = \
   install.packages('rmarkdown'); \
 "  
 
+RUN R -e "options(repos = \
+  list(CRAN = 'https://packagemanager.posit.co/cran/2023-12-01/')); \
+  install.packages('ggplotly'); \
+"  
 
 ## Install extra packages required for quarto 
 RUN apt-get update \
