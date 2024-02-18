@@ -40,6 +40,12 @@ eda_tab <- tabItem(
       uiOutput("eda_type_temporal")
     ),
     tabPanel(
+      title = "Temporal Site",
+      icon = icon("database"),
+      id = "eda_site_temporal_tab",
+      uiOutput("eda_site_temporal")
+    ),
+    tabPanel(
       title = "Spatial Type",
       icon = icon("map"),
       id = "eda_type_spatial_tab",

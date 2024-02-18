@@ -70,7 +70,7 @@ load_packages <- function() {
     pkgs <- c(
       "tidyverse", "testthat", "cli", "rlang", "crayon",
       "assertthat", "lubridate", "rmarkdown", "bookdown",
-      "sf", "validate", "status"
+      "sf", "validate", "status", "plotly"
     )
 
     for (p in pkgs) {
@@ -173,7 +173,7 @@ cleanse_paths <- function(paths, files) {
     }
     ## Specific files
     remove_only <- function(x) if(file.exists(x)) file.remove(x)
-    if (length(files) > 0) do.call(remove_only, list(files))
+    ## if (length(files) > 0) do.call(remove_only, list(files))
   },
   stage_ = 1,
   name_ = "Cleanse paths",

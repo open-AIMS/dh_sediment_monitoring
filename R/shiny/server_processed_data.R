@@ -13,12 +13,14 @@ observeEvent(input$runProcessCode, {
         compact = TRUE, bordered = TRUE, resizable = TRUE,
         highlight = TRUE,
         wrap = FALSE,
+        filterable = TRUE,
+          ##pagination = FALSE, height = 600,
         ## defaultColDef = colDef(style = "white-space: nowrap;"),
         theme = reactableTheme(
           headerStyle = list(color = "white", backgroundColor = "rgb(81, 127, 185)"),
           borderWidth = "1pt",
           borderColor = "rgb(85, 85, 85)",
-          style = list(fontFamily = "Helvetica, Arial, sans-serif")
+          style = list(fontFamily = "Helvetica, Arial, sans-serif", fontSize = "10px")
         )
       )
   })

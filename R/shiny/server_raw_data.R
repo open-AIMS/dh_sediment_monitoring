@@ -60,7 +60,7 @@ observeEvent(input[["rowClicked"]], {
           headerStyle = list(color = "white", backgroundColor = "rgb(81, 127, 185)"),
           borderWidth = "1pt",
           borderColor = "rgb(85, 85, 85)",
-          style = list(fontFamily = "Helvetica, Arial, sans-serif")
+          style = list(fontFamily = "Helvetica, Arial, sans-serif", fontSize = "12px")
         )
       )
   })
@@ -98,7 +98,7 @@ observeEvent(input[["rowClicked"]], {
           headerStyle = list(color = "white", backgroundColor = "rgb(81, 127, 185)"),
           borderWidth = "1pt",
           borderColor = "rgb(85, 85, 85)",
-          style = list(fontFamily = "Helvetica, Arial, sans-serif")
+          style = list(fontFamily = "Helvetica, Arial, sans-serif", fontSize = "12px")
         )
       )
   })
@@ -162,7 +162,7 @@ data_frame_to_reactable <- function(df) {
                     headerStyle = list(color = "white", backgroundColor = "rgb(81, 127, 185)"),
                     borderWidth = "1pt",
                     borderColor =  "rgb(85, 85, 85)",
-                    style = list(fontFamily = "Helvetica, Arial, sans-serif")
+                    style = list(fontFamily = "Helvetica, Arial, sans-serif", fontSize = "14px")
             ),
             onClick = JS("function(rowInfo, column) {
           Shiny.setInputValue('rowClicked', rowInfo.index + 1, { priority: 'event' })

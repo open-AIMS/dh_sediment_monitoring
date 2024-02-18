@@ -13,6 +13,8 @@ module_load_data <- function() {
         raw_data <- read_input_data(input_path)
         saveRDS(raw_data, file = paste0(data_path, "primary/raw_data.RData"))
 
+        raw_data <- fix_dates(raw_data)
+        saveRDS(raw_data, file = paste0(data_path, "primary/raw_data.RData"))
         ## Validate the data
 
         ## this will create a tibble (raw_data_validations) that contains items that
@@ -38,59 +40,116 @@ module_load_data <- function() {
 ##' sheets
 ##' @title Read input data
 ##' @param input_path character representing the path from which to read the input data files
-##' @return nested list of data files and their sheets 
+##' @return nested list of data files and their sheets
 ##' @author Murray Logan
 ##' @export
 read_input_data <- function(input_path) {
-  ## Get the filenames and types of any files in the `input_path` folder
-  status::status_try_catch(
-  {
-    files <- list.files(
-      path = input_path, pattern = ".*\\.csv|.*\\.xlsx",
-      full.names = TRUE
-    )
-    file_types <- gsub(".*(xlsx|csv)$", "\\1", files)
-  } ,
-  stage_ = 2,
-  name_ = "Read input info",
-  item_ = "read_input_info"
-  )
-  ## Read in the input files and construct a raw data list
-  status::status_try_catch(
-  {
-    raw_data <- vector(mode = "list", length = length(files))
-    names(raw_data) <- basename(files)
-    raw_data <- Map(raw_data, seq_along(raw_data), f = function(x, i) {
-        if (file_types[i] == "xlsx") {
-            sheet_names <- readxl::excel_sheets(files[i])
-            ## Only include the sheets matching the desired patterns
-            patterns <- c("^[mM]etals$|^[hH]ydrocarbons|^[tT]otal_[cC]arbons$|^[mM]etadata|^[nN]otes")
-            assign("patterns", patterns, envir = .GlobalEnv)
-            sheet_names <- sheet_names |> str_subset(pattern = paste(patterns, collapse = "|"))
-            sheets <- lapply(sheet_names, readxl::read_excel, path = files[i])
-            ## standardise sheet names
-            replacements <- c("metals", "hydrocarbons", "total_carbons", "metadata", "notes")
-            sheet_names <- stringr::str_replace_all(sheet_names, patterns, replacements)
-            sheets <- setNames(sheets, sheet_names)
-            sheets[replacements] <-
-              lapply(sheets[replacements], function(x) { ## Remove columns whose names start with '...'
-                x |> dplyr::select(-starts_with("..."))
-              })
-        } else if (file_types[i] == "csv") {
-            sheets <- list(data = readr::read_csv(files[i]))
-        }
-        x <- list(
-            path = files[i],
-            file_type = file_types[i]
+        ## Get the filenames and types of any files in the `input_path` folder
+        status::status_try_catch(
+                {
+                        files <- list.files(
+                                path = input_path, pattern = ".*\\.csv|.*\\.xlsx",
+                                full.names = TRUE
+                        )
+                        file_types <- gsub(".*(xlsx|csv)$", "\\1", files)
+                },
+                stage_ = 2,
+                name_ = "Read input info",
+                item_ = "read_input_info"
         )
-        x <- append(x, sheets)
-    })
-  } ,
-  stage_ = 2,
-  name_ = "Read input data",
-  item_ = "read_input_data"
-  )
+        ## Read in the input files and construct a raw data list
+        status::status_try_catch(
+                {
+                        raw_data <- vector(mode = "list", length = length(files))
+                        names(raw_data) <- basename(files)
+                        raw_data <- Map(raw_data, seq_along(raw_data), f = function(x, i) {
+                                if (file_types[i] == "xlsx") {
+                                        sheet_names <- readxl::excel_sheets(files[i])
+                                        ## Only include the sheets matching the desired patterns
+                                        patterns <- c("^[mM]etals$|^[hH]ydrocarbons|^[tT]otal_[cC]arbons$|^[mM]etadata|^[nN]otes")
+                                        assign("patterns", patterns, envir = .GlobalEnv)
+                                        sheet_names <- sheet_names |> str_subset(pattern = paste(patterns, collapse = "|"))
+                                        sheets <- lapply(sheet_names, readxl::read_excel, path = files[i])
+                                        ## standardise sheet names
+                                        replacements <- c("metals", "hydrocarbons", "total_carbons", "metadata", "notes")
+                                        sheet_names <- stringr::str_replace_all(sheet_names, patterns, replacements)
+                                        sheets <- setNames(sheets, sheet_names)
+                                        sheets[replacements] <-
+                                                lapply(sheets[replacements], function(x) { ## Remove columns whose names start with '...'
+                                                        x |> dplyr::select(-starts_with("..."))
+                                                })
+                                } else if (file_types[i] == "csv") {
+                                        sheets <- list(data = readr::read_csv(files[i]))
+                                }
+                                x <- list(
+                                        path = files[i],
+                                        file_type = file_types[i]
+                                )
+                                x <- append(x, sheets)
+                        })
+                },
+                stage_ = 2,
+                name_ = "Read input data",
+                item_ = "read_input_data"
+        )
+}
 
+
+##' Fix any numeric date/times within sheets
+##'
+##' Excel stores dates and times as a floating point number and this
+##' is different to unix time.  Often excel will display the date and
+##' time in a human readable format so the user many not be aware of
+##' how the data are stored.  When these data are imported into R
+##' they might be considered numbers rather than updates.
+##'
+##' To convert we take the number and multiply by (60*60*24) to
+##' convert to unix time and then use the as.POSIXct() function with
+##' an origin of "1899-12-30" and a timezone of "GMT".
+##' @title Fix numeric date/time
+##' @param fix_dates 
+##' @return a nested list with corrected dates 
+##' @author Murray Logan
+##' @export
+fix_dates <- function(raw_data) {
+  status::status_try_catch(
+  {
+    raw_data <- lapply(raw_data, function(x) {
+            nms <- c(
+                    "metals", "hydrocarbons", "total_carbons",
+                    "metadata", "notes"
+            )
+            d <- lapply(nms, function(sheet) {
+                    ## determine the class of each column
+                    classes <- lapply(x[[sheet]], "class")
+                    ## which of the columns have "date_time" in their names
+                    wch <- str_which(names(classes), "date_time")
+                    ## which of these are numeric
+                    wch_numeric <- which(classes[wch] == "numeric")
+                    ## get the name of any numeric date_time fields
+                    nms_numeric_dates <- names(classes)[wch[wch_numeric]]
+                    if (length(wch_numeric) > 0) {
+                            ## convert the excel numeric into POSIXct
+                            x[[sheet]] <- x[[sheet]] |>
+                                    mutate(across(
+                                            any_of(nms_numeric_dates),
+                                            function(t) {
+                                                    as.POSIXct(t * (60 * 60 * 24),
+                                                            origin = "1899-12-30", tz = "GMT"
+                                                    )
+                                            }
+                                    ))
+                    }
+                    x[[sheet]]
+            })
+            setNames(d, nm = nms)
+    })
+    raw_data
+  },
+  stage_ = 2,
+  name_ = "Fix dates",
+  item_ = "Fix dates"
+  )
 }
 
 ##' Validate the input data against a series of sheet specific rules

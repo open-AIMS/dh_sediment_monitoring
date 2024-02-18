@@ -239,7 +239,9 @@ collate_data <- function(data.lst) {
             mutate(Year_fiscal = floor(lubridate::quarter(Acquire_date_time, fiscal_start = 7, with_year = TRUE))) |>
             mutate(Year_water = floor(lubridate::quarter(Acquire_date_time, fiscal_start = 10, with_year = TRUE))) |>
             mutate(Year = Year_cal) |>
-            mutate(Baseline = ifelse(Baseline_acquire_date_time == Acquire_date_time, TRUE, FALSE))
+            mutate(Baseline = ifelse(Baseline_acquire_date_time == Acquire_date_time, TRUE, FALSE)) |>
+            mutate(Replicate_flag = ifelse(str_detect(Sample_key, "rep"), TRUE, FALSE)) |> 
+            mutate(Duplicate_flag = ifelse(str_detect(Sample_key, "dup|DUP"), TRUE, FALSE)) 
     ## Unfortunately, the hydrocarbons and total_carbons (TOC) have
     ## different Sample_ID (and Origianal_SampleID) for the same
     ## location/time. This will cause downstream issues. To fix this,
