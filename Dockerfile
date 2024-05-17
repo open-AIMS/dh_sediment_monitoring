@@ -111,6 +111,26 @@ RUN R -e "options(repos = \
   install.packages('sf'); \
 "  
 
+RUN R -e "options(repos = \
+  list(CRAN = 'https://packagemanager.posit.co/cran/2024-02-20/')); \
+  install.packages('rstan');  \ 
+  install.packages('brms');   \
+  install.packages('tidybayes'); 	\
+  install.packages('cmdstanr', repos = c('https://mc-stan.org/r-packages/', getOption('repos'))); \
+  remotes::install_github('stan-dev/cmdstanr'); \
+  library(cmdstanr); \
+  check_cmdstan_toolchain(); \
+  install_cmdstan(cores = 2); \
+"  
+
+RUN R -e "options(repos = \
+  list(CRAN = 'https://packagemanager.posit.co/cran/2024-02-20/')); \
+  install.packages('emmeans');   \
+  install.packages('DHARMa');   \
+  install.packages('patchwork');   \
+"  
+
+
 
 
 RUN apt-get clean

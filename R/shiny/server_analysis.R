@@ -5,7 +5,8 @@ source("05_stats_functions.R")
 
 
 observeEvent(input$runAnalysisCode, {
-  # module_temporal()
+  if (!file.exists(paste0(data_path, "modelled/data.RData")))
+    module_temporal()
   
   data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
   effect_years <- data |>
