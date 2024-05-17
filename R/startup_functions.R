@@ -20,18 +20,18 @@ start_matter <- function(args = commandArgs()) {
   load_packages()                                                      ## load required packages
   get_settings(args)                                                   ## get settings (either from CLA or shiny)
   define_paths()                                                       ## define the location of paths/files
-  if (get_current_stage() == 1) {
-    ## clear data and outputs from previous runs
-    cleanse_paths(
-      paths = c("data_path", "output_path"),
-      files = list.files(
-        path = docs_path,
-        pattern = ".*(.qmd|.html|.md)",
-        full.names = TRUE
-      )
-    )
-    prepare_paths()                                                    ## prepare file structure
-  }
+  ## if (get_current_stage() == 1) {
+  ##   ## clear data and outputs from previous runs
+  ##   cleanse_paths(
+  ##     paths = c("data_path", "output_path"),
+  ##     files = list.files(
+  ##       path = docs_path,
+  ##       pattern = ".*(.qmd|.html|.md)",
+  ##       full.names = TRUE
+  ##     )
+    ## )
+  ## }
+  prepare_paths()                                                    ## prepare file structure
 }
 
 ##' Initialise status
@@ -70,7 +70,8 @@ load_packages <- function() {
     pkgs <- c(
       "tidyverse", "testthat", "cli", "rlang", "crayon",
       "assertthat", "lubridate", "rmarkdown", "bookdown",
-      "sf", "validate", "status", "plotly"
+      "sf", "validate", "status", "plotly", "brms", "emmeans", "tidybayes",
+      "DHARMa", "patchwork"
     )
 
     for (p in pkgs) {
@@ -110,8 +111,11 @@ get_settings <- function(args) {
     assign("input_path", "../input/", env = .GlobalEnv)
     add_setting(element = "input_path", item = input_path, name = "Input path")
 
-    ##put in some logic that decides whether this code has been called from the
-    ##command line or shiny
+    ## put in some logic that decides whether this code has been called from the
+    ## command line or shiny
+
+    ## Set the limit of reporting option to 1 (censor data at limit of reporting)
+    status::add_setting(element = "lor", item = 1, name = "Limit of Reporting")
   },
   stage_ = 1,
   name_ = "Get settings",
@@ -157,28 +161,29 @@ define_paths <- function() {
 ##' Delete paths and files nominated in input
 ##' @title Cleanse paths
 ##' @param paths character vector representing the path(s) to be deleted
-##' @param files character vector representing the file(s) to be deleted 
-##' @return NULL 
+##' @param files character vector representing the file(s) to be deleted
+##' @return NULL
 ##' @author Murray Logan
 cleanse_paths <- function(paths, files) {
-  status::status_try_catch(
-  {
-    ## Entire paths
-    eval_parse <- function(x) {
-      eval(parse(text = paste0(x)))
+  # status::status_try_catch(
+  # {
+  ## Entire paths
+  eval_parse <- function(x) {
+    eval(parse(text = paste0(x)))
+  }
+  for (d in paths) {
+    if (dir.exists(eval_parse(d))) {
+      unlink(eval_parse(d), recursive = TRUE)
     }
-    for (d in paths) {
-      if (dir.exists(eval_parse(d)))
-        unlink(eval_parse(d), recursive = TRUE)
-    }
-    ## Specific files
-    remove_only <- function(x) if(file.exists(x)) file.remove(x)
-    ## if (length(files) > 0) do.call(remove_only, list(files))
-  },
-  stage_ = 1,
-  name_ = "Cleanse paths",
-  item_ = "cleanse_paths"
-  )
+  }
+  ## Specific files
+  remove_only <- function(x) if (file.exists(x)) file.remove(x)
+  ## if (length(files) > 0) do.call(remove_only, list(files))
+  # },
+  # stage_ = 1,
+  # name_ = "Cleanse paths",
+  # item_ = "cleanse_paths"
+  # )
 }
 
 ##' Ensure that the important paths are created if they do not already exist
@@ -197,6 +202,9 @@ prepare_paths <- function() {
     }
     if (!dir.exists(paste0(data_path, "processed/"))) {
       dir.create(paste0(data_path, "processed/"))
+    }
+    if (!dir.exists(paste0(data_path, "modelled/"))) {
+      dir.create(paste0(data_path, "modelled/"))
     }
 
     if (!dir.exists(output_path)) dir.create(output_path)

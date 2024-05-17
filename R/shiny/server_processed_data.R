@@ -14,6 +14,11 @@ observeEvent(input$runProcessCode, {
         highlight = TRUE,
         wrap = FALSE,
         filterable = TRUE,
+                defaultColDef = colDef(filterMethod = JS("function(rows, columnId, filterValue) {
+        return rows.filter(function(row) {
+          return row.values[columnId].indexOf(filterValue) !== -1
+        })
+      }")),
           ##pagination = FALSE, height = 600,
         ## defaultColDef = colDef(style = "white-space: nowrap;"),
         theme = reactableTheme(

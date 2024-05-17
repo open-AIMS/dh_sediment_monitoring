@@ -81,10 +81,33 @@ successive stage of the pipeline.  The stages are:
   This stage comprises of the following steps:
   
   - retrieve the processed data.
+  - construct spatio-temporal design plots conditioned on initial sampling semester
+  - construct variable temporal design plots conditioned on harbour zone
+  - construct site level temporal trends for each variable
+  - construct zone level temporal and spatial visualisations for each variable
   
   The exploratory data figures of the **Exploratory Data Analysis** page will also be populated.
   </p>
   </details>
+- Stage 5 - Temporal analyses
+  <details><summary>More info</summary>
+  <p class = "details-info">
+  This stage comprises of the following steps:
+  
+  - retrieve the processed data
+  - prepare the data for modelling
+  - prepare appropriate model formulae for each zone, variable,
+    standardisation type
+  - prepare appropriate model priors for each zone, variable,
+    standardisation type 
+  - prepare appropriate model template 
+  - fit the models for each zone, variable, standardisation type
+  - perform model validations for each zone, variable, standardisation
+    type
+  - estimate all the contrasts for each model and collate all the
+    effects
+
+  </p> </details>
 
 Underneath the sidebar menu there are a series of buttons that control
 progression through the analysis pipeline stages. When a button is

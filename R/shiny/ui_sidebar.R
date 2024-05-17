@@ -12,7 +12,8 @@ sidebar <- dashboardSidebar(
     ## actionBttn("runLoadCode", "Run Stage 2", style = "jelly", color =  "primary", icon = icon("play")),
     actionButton("runProcessCode", "Run Stage 3", icon = icon("play"), class = "btn-disabled"),
     ## actionBttn("runProcessCode", "Run Stage 3", style = "unite", color = "primary", icon = icon("play")),
-    actionButton("runEDACode", "Run Stage 4", icon = icon("play"), class = "btn-disabled")
+    actionButton("runEDACode", "Run Stage 4", icon = icon("play"), class = "btn-disabled"),
+    actionButton("runAnalysisCode", "Run Stage 5", icon = icon("play"), class = "btn-disabled")
     ## actionBttn("runEDACode", "Run Stage 4", style = "unite", color = "primary", icon = icon("play"))
   )
 )

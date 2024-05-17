@@ -85,7 +85,7 @@ RUN R -e "options(repos = \
 
 RUN R -e "options(repos = \
   list(CRAN = 'https://packagemanager.posit.co/cran/2023-12-01/')); \
-  install.packages('ggplotly'); \
+  install.packages('plotly'); \
 "  
 
 ## Install extra packages required for quarto 

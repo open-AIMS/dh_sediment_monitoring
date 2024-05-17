@@ -9,6 +9,7 @@ library(reactable)
 library(leaflet)
 library(shinyjs)
 
+if (options()$browser == "") options(browser = "chromium")
 #options(browser = "webmacs")
 #setwd('~/Work/AIMS/Projects/Darwin Harbour Sediment Quality Shiny/dh_sediment_monitoring/R/')
 

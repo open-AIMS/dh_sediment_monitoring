@@ -2,6 +2,7 @@ source("shiny/ui_body_landing.R")
 source("shiny/ui_body_dashboard.R")
 source("shiny/ui_body_data.R")
 source("shiny/ui_body_eda.R")
+source("shiny/ui_body_analysis.R")
 source("shiny/ui_body_manual.R")
 
 
@@ -299,6 +300,7 @@ body <- dashboardBody(
                 data_tab,
                 ## EDA
                 eda_tab,
+                analysis_tab,
                 manual_tab
         )
 )

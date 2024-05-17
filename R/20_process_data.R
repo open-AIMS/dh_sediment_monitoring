@@ -42,6 +42,7 @@ module_process_data <- function() {
   ## ## - Site = Baseline_site
   ## ## - Var
   ## ## - values
+  ## ## - lor_flag
   ## ## - Latitute
   ## ## - Longitude
   ## ## - Year,
@@ -89,21 +90,25 @@ retrieve_data <- function(file) {
 apply_LoRs <- function(raw_data) {
   status::status_try_catch(
   {
+    lor_value <- status_$settings$lor$item
     lor <- function(x) {
       xx <- as.numeric(str_replace(x, "^<\\s?(.*)", "\\1"))
-      xx[grepl("^<.*", x)] <- xx[grepl("^<.*", x)]/2
+      xx[grepl("^<.*", x)] <- xx[grepl("^<.*", x)]/lor_value
       xx
     }
     dt <- c("metals", "hydrocarbons")
     df <- lapply(raw_data, function(df) {
       df[dt] <- lapply(dt, function(x) {
         if (x == "metals") {
-          tmplt <- "^[A-Z][a-z]?\\s\\(mg/kg\\)"
+          tmplt <- "^[A-Z][a-z]?\\s\\(mg/kg\\)$"
         } else {
-          tmplt <- "^>C[0-9].*"
+          tmplt <- "^>C[0-9].*[^l][^o][^r]$"
         }
         df[[x]] |>
           ## mutate(LORs_flag = ifelse(str_detect("<"))) |>
+          mutate(across(matches(tmplt),
+            list(lor = function(x) ifelse(str_detect(x, "<") & lor_value == 1,
+              TRUE, FALSE)))) |> 
           mutate(across(matches(tmplt), ~ {
             lor(.x)
           }))
@@ -116,6 +121,30 @@ apply_LoRs <- function(raw_data) {
   item_ = "apply_lors"
   )
 }
+
+## apply_LoRs_old <- function(raw_data) {
+##     lor <- function(x) {
+##       xx <- as.numeric(str_replace(x, "^<\\s?(.*)", "\\1"))
+##       xx[grepl("^<.*", x)] <- xx[grepl("^<.*", x)]/2
+##       xx
+##     }
+##     dt <- c("metals", "hydrocarbons")
+##     df <- lapply(raw_data, function(df) {
+##       df[dt] <- lapply(dt, function(x) {
+##         if (x == "metals") {
+##           tmplt <- "^[A-Z][a-z]?\\s\\(mg/kg\\)"
+##         } else {
+##           tmplt <- "^>C[0-9].*"
+##         }
+##         df[[x]] |>
+##           ## mutate(LORs_flag = ifelse(str_detect("<"))) |>
+##           mutate(across(matches(tmplt), ~ {
+##             lor(.x)
+##           }))
+##       })
+##       df
+##     })
+## }
 
 ##' Pivot data
 ##'
@@ -131,16 +160,36 @@ pivot_data <- function(lst) {
     df <- lapply(lst, function(df) {
       df[dt] <- lapply(dt, function(y) {
         tmplt <- switch(y,
-                "metals" = "^[A-Z][a-z]?\\s\\(mg/kg\\)",
-                "hydrocarbons" = "^>C[0-9].*",
-                "total_carbons" = "TOC.*"
+          "metals" = "^[A-Z][a-z]?\\s\\(mg/kg\\)$",
+          "hydrocarbons" = "^>C[0-9].*[^l][^o][^r]$",
+          "total_carbons" = "TOC.*"
         )
-        df[[y]] <- df[[y]] |>
+        dfa <- df[[y]] |>
+          dplyr::select(-all_of(matches("_lor"))) |>
           pivot_longer(
             cols = matches(tmplt),
             names_to = "Var",
             values_to = "values"
           )
+        if (y == "total_carbons") {
+          dfb <- dfa |> dplyr::select(-values) |> mutate(lor_flag = FALSE)
+        } else {
+          dfb <- df[[y]] |>
+            dplyr::select(-all_of(matches(tmplt))) |> 
+            rename_with(function(x) str_replace(x, "_lor", "")) |> 
+            pivot_longer(
+              cols = matches(tmplt),
+              names_to = "Var",
+              values_to = "lor_flag"
+            )
+        }
+        df[[y]] <- dfa |> full_join(dfb, by = c("Sample_ID", "Var"))
+        ## df[[y]] <- df[[y]] |>
+        ##   pivot_longer(
+        ##     cols = matches(tmplt),
+        ##     names_to = "Var",
+        ##     values_to = "values"
+        ##   )
         df[[y]]
       })
       df
@@ -307,10 +356,11 @@ incorporate_spatial_data <- function(df, spatial) {
     df |>
       filter(!is.na(Longitude), !is.na(Latitude)) |>
       sf::st_as_sf(coords = c("Longitude", "Latitude"),
-                   remove = FALSE,
-                   crs = st_crs(4326)) |>
+        remove = FALSE,
+        crs = st_crs(4326)) |>
       st_transform(crs = st_crs(spatial)) |>
-          sf::st_intersection(spatial) |>
+      ## sf::st_intersection(spatial) |>  ## turns out some of the sampling sites are outside of the spatial objects!
+      sf::st_join(spatial, join = st_nearest_feature) |>
       dplyr::rename(ZoneName = Zone_Name) |>
       left_join(spatial_lookup, by = "ZoneName") |>
       dplyr::select(-OBJECTID) ->
@@ -398,69 +448,73 @@ standardise_data <- function(df) {
 ##' @return a tibble 
 ##' @author Murray Logan
 standardise_metals <- function(df) {
-    df |>
-      pivot_wider(
-        id_cols = everything(),
-        names_from = Var,
-        values_from = values
-      ) |>
-      ## start with Ag, Co, Cu, Hg, Ni, Pb and Zn
-      ## - if Fe/Al < 1.3, val*50000/Fe
-      ## - if Fe/Al > 1.3, val*20000/Al
-      mutate(`Fe/Al` = `Fe (mg/kg)` / `Al (mg/kg)`,
-        Fe_Al_normalisation = ifelse(`Fe/Al` < 1.3, 'Al', 'Fe')) |>
-      ## Determine the most recent Normalisation group - use this for normalising
-      group_by(Site_ID) |>
-      mutate(Normalised_against = Fe_Al_normalisation[which.max(Acquire_date_time)]) |>
-      ungroup() |>
-      ## Flag sites in which the normalisation group has changed (different from most recent)
-      ## Although this is being applied to the entire row, it is not relevant to V and hydrocarbons
-      mutate(Normalisation_flag = ifelse(Normalised_against == Fe_Al_normalisation,
-        FALSE,
-        TRUE)) |>
-      mutate(across(
-        c(
-          `Ag (mg/kg)`,
-          `Co (mg/kg)`,
-          `Cu (mg/kg)`,
-          `Hg (mg/kg)`,
-          `Ni (mg/kg)`,
-          `Pb (mg/kg)`,
-          `Zn (mg/kg)`
-        ),
-        list(n = ~ ifelse(Normalised_against == "Al",
-          . * 50000/`Al (mg/kg)`,
-          . * 20000/`Fe (mg/kg)`
-        )),
-        .names = "{.fn}_{.col}"
-      )) |>
-      ## Vanadium
-      ## val*50000/Fe
-      mutate(`n_V (mg/kg)` = `V (mg/kg)` * 50000 / `Fe (mg/kg)`) |>
-      ## Arsenic
-      ## - for outer harbour - use ratio of As to Mn
-      ## - for inner (middle and upper) - use val*50000/Fe
-      ## - also include a version that is always val*5000/Fe
-      mutate(
-        `n_As (mg/kg)` = ifelse(RegionName == "Outer",
-          `As (mg/kg)` / `Mn (mg/kg)`,
-          `As (mg/kg)` * 50000 / `Fe (mg/kg)`
-        ),
-        `n2_As (mg/kg)` = `As (mg/kg)` * 50000 / `Fe (mg/kg)`
-      ) |>
-      ## Now pivot longer again, but put the standardised values in a separate field
-      pivot_longer(
-        cols = matches("[A-Z][a-z]?\\s\\(mg/kg\\)"),
-        names_to = "Var",
-        values_to = "Values"
-      ) |>
-      mutate(Value_type = case_when(
-        str_detect(Var, "n2_") ~ "Alt_standardised",
-        str_detect(Var, "n_") ~ "Standardised",
-        .default = "Unstandardised"),
-        Var = str_replace(Var, "n2?_","")) |>
-      ## pivot_wider(names_from = Norm, values_from =  Values) |>
-      mutate(Normalised_against = ifelse(!Var %in%
+  ## We need to take the lor flags out while we perform the standardisations
+  ## These will be put back in via a join after the standardisations.
+  df_old <- df |> dplyr::select(Var, lor_flag, Sample_key)
+  df1 <- df |>
+    dplyr::select(-lor_flag) |> 
+    pivot_wider(
+      id_cols = everything(),
+      names_from = Var,
+      values_from = values
+    ) |>
+    ## start with Ag, Co, Cu, Hg, Ni, Pb and Zn
+    ## - if Fe/Al < 1.3, val*50000/Fe
+    ## - if Fe/Al > 1.3, val*20000/Al
+    mutate(`Fe/Al` = `Fe (mg/kg)` / `Al (mg/kg)`,
+      Fe_Al_normalisation = ifelse(`Fe/Al` < 1.3, 'Al', 'Fe')) |>
+    ## Determine the most recent Normalisation group - use this for normalising
+    group_by(Site_ID) |>
+    mutate(Normalised_against = Fe_Al_normalisation[which.max(Acquire_date_time)]) |>
+    ungroup() |>
+    ## Flag sites in which the normalisation group has changed (different from most recent)
+    ## Although this is being applied to the entire row, it is not relevant to V and hydrocarbons
+    mutate(Normalisation_flag = ifelse(Normalised_against == Fe_Al_normalisation,
+      FALSE,
+      TRUE)) |>
+    mutate(across(
+      c(
+        `Ag (mg/kg)`,
+        `Co (mg/kg)`,
+        `Cu (mg/kg)`,
+        `Hg (mg/kg)`,
+        `Ni (mg/kg)`,
+        `Pb (mg/kg)`,
+        `Zn (mg/kg)`
+      ),
+      list(n = ~ ifelse(Normalised_against == "Al",
+        . * 50000/`Al (mg/kg)`,
+        . * 20000/`Fe (mg/kg)`
+      )),
+      .names = "{.fn}_{.col}"
+    )) |>
+    ## Vanadium
+    ## val*20000/Fe
+    mutate(`n_V (mg/kg)` = `V (mg/kg)` * 20000 / `Fe (mg/kg)`) |>
+    ## Arsenic
+    ## - for outer harbour - use ratio of As to Mn
+    ## - for inner (middle and upper) - use val*20000/Fe
+    ## - also include a version that is always val*2000/Fe
+    mutate(
+      `n_As (mg/kg)` = ifelse(RegionName == "Outer",
+        `As (mg/kg)` / `Mn (mg/kg)`,
+        `As (mg/kg)` * 20000 / `Fe (mg/kg)`
+      ),
+      `n2_As (mg/kg)` = `As (mg/kg)` * 20000 / `Fe (mg/kg)`
+    ) |>
+    ## Now pivot longer again, but put the standardised values in a separate field
+    pivot_longer(
+      cols = matches("[A-Z][a-z]?\\s\\(mg/kg\\)"),
+      names_to = "Var",
+      values_to = "Values"
+    ) |>
+    mutate(Value_type = case_when(
+      str_detect(Var, "n2_") ~ "Alt_standardised",
+      str_detect(Var, "n_") ~ "Standardised",
+      .default = "Unstandardised"),
+      Var = str_replace(Var, "n2?_","")) |>
+    ## pivot_wider(names_from = Norm, values_from =  Values) |>
+    mutate(Normalised_against = ifelse(!Var %in%
                                          c(
                                            "Ag (mg/kg)",
                                            "Co (mg/kg)",
@@ -471,27 +525,28 @@ standardise_metals <- function(df) {
                                            "Zn (mg/kg)",
                                            "As (mg/kg)"
                                          ) | Value_type == "Unstandardised",
-                                         NA, Normalised_against),
-             Normalised_against = ifelse(Var == "V (mg/kg)" & Value_type == "Standardised",
-                                         "Fe", Normalised_against),
-             Normalised_against = ifelse(Var %in% "As (mg/kg)" & RegionName == "Outer" & Value_type == "Stanardised",
-                                         "Mn",
-                                  ifelse(Var %in% "As (mg/kg)" & RegionName == "Inner" & Value_type == "Standardised",
-                                         "Fe", Normalised_against)),
-             Normalised_against = ifelse(Var == "As (mg/kg)" & Value_type == "Alt_standardised",
-                                         "Fe", Normalised_against),
-             Normalisation_flag = ifelse(!Var %in%
-                                         c(
-                                           "Ag (mg/kg)",
-                                           "Co (mg/kg)",
-                                           "Cu (mg/kg)",
-                                           "Hg (mg/kg)",
-                                           "Ni (mg/kg)",
-                                           "Pb (mg/kg)",
-                                           "Zn (mg/kg)"
-                                         ) | Value_type == "Unstandardised",
-                                         NA, Normalisation_flag)
-             )
+      NA, Normalised_against),
+      Normalised_against = ifelse(Var == "V (mg/kg)" & Value_type == "Standardised",
+        "Fe", Normalised_against),
+      Normalised_against = ifelse(Var %in% "As (mg/kg)" & RegionName == "Outer" & Value_type == "Stanardised",
+        "Mn",
+        ifelse(Var %in% "As (mg/kg)" & RegionName == "Inner" & Value_type == "Standardised",
+          "Fe", Normalised_against)),
+      Normalised_against = ifelse(Var == "As (mg/kg)" & Value_type == "Alt_standardised",
+        "Fe", Normalised_against),
+      Normalisation_flag = ifelse(!Var %in%
+                                    c(
+                                      "Ag (mg/kg)",
+                                      "Co (mg/kg)",
+                                      "Cu (mg/kg)",
+                                      "Hg (mg/kg)",
+                                      "Ni (mg/kg)",
+                                      "Pb (mg/kg)",
+                                      "Zn (mg/kg)"
+                                    ) | Value_type == "Unstandardised",
+        NA, Normalisation_flag)
+    )
+  df1 |> full_join(df_old, by = c("Sample_key", "Var")) 
 }
 
 ##' Standardise hydrocarbons
@@ -502,36 +557,42 @@ standardise_metals <- function(df) {
 ##' @return a tibble 
 ##' @author Murray Logan
 standardise_hydrocarbons <- function(df) {
-    df |>
-      pivot_wider(
-        id_cols = everything(),
-        names_from = Var,
-        values_from = values
-      ) |>
-      mutate(across(
-        any_of(
-          c(
-            ">C10 _C16 (mg/kg)",
-            ">C16 _C34 (mg/kg)",
-            ">C34 _C40 (mg/kg)",
-            ">C10_C40 (mg/kg)"
-          )
-        ),
-        list(n = ~ . / `TOC (%)`),
-        .names = "{.fn}_{.col}"
-      )) |>
-      ## Now pivot longer again, but put the standardised values in a separate field
-      pivot_longer(
-        cols = matches("^(n2?_)?>C[0-9].*|TOC\\s\\(%\\)"),
-        names_to = "Var",
-        values_to = "Values"
-      ) |>
-      mutate(Value_type = case_when(
-              str_detect(Var, "n2_") ~ "Alt_standardised",
-              str_detect(Var, "n_") ~ "Standardised",
-              .default = "Unstandardised"
+  df_old <- df |> dplyr::select(Var, lor_flag, Sample_key)
+  df1 <- df |>
+    dplyr::select(-lor_flag) |> 
+    pivot_wider(
+      id_cols = everything(),
+      names_from = Var,
+      values_from = values
+    ) |>
+    mutate(across(
+      any_of(
+        c(
+          ">C10 _C16 (mg/kg)",
+          ">C16 _C34 (mg/kg)",
+          ">C34 _C40 (mg/kg)",
+          ">C10_C40 (mg/kg)"
+        )
       ),
-      Var = str_replace(Var, "n2?_", ""))
+      list(n = ~ . / `TOC (%)`),
+      .names = "{.fn}_{.col}"
+    )) |>
+    ## Now pivot longer again, but put the standardised values in a separate field
+    pivot_longer(
+      cols = matches("^(n2?_)?>C[0-9].*|TOC\\s\\(%\\)"),
+      names_to = "Var",
+      values_to = "Values"
+    ) |>
+    mutate(
+            Value_type = case_when(
+                    str_detect(Var, "n2_") ~ "Alt_standardised",
+                    str_detect(Var, "n_") ~ "Standardised",
+                    .default = "Unstandardised"
+            ),
+            Var = str_replace(Var, "n2?_", "")
+    ) |>
+    filter(!is.na(Values))    #Remove these cases - they are caused by the hydrocarbons having replicates and the TOC not having replicates - so the Sample_key are different
+  df1 |> full_join(df_old, by = c("Sample_key", "Var")) 
 }
 
 ##' Create site lookup
