@@ -39,7 +39,7 @@ module_process_data <- function() {
 
   ## Tidy up fields
   ## ## Only keep
-  ## ## - Site = Baseline_site
+  ## ## - Site = if IBSM_site is blank, then Site_ID otherwise IBSM_site (used to be Baseline_site)
   ## ## - Var
   ## ## - values
   ## ## - lor_flag
@@ -391,7 +391,8 @@ tidy_fields <- function(df) {
   status::status_try_catch(
   {
     df |>
-            mutate(Site = Baseline_site) |>
+            ## mutate(Site = Baseline_site) |>
+            mutate(Site = ifelse(is.na(IBSM_site), Site_ID, IBSM_site)) |>
             dplyr::select(-Sample_ID, -Original_SampleID)
   },
   stage_ = 3,
