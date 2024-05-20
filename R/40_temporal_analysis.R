@@ -198,14 +198,17 @@ fit_models <- function(data) {
                           unique(..1$Value_type)
                   ))
           )
+          ## print(nm)
           mod_template <- readRDS(..4)
+          recom <- ifelse(identical(mod_template$form, ..2), FALSE, TRUE)
+          ## print(recom)
           capture.output(
             mod <- invisible(update(mod_template,
               form = ..2,
               newdata = ..1,
               prior = ..3,
               sample_prior = "yes",
-              recompile = FALSE,
+              recompile = recom,
               iter = 5000,
               chains = 3, cores = 3,
               warmup = 1000,
