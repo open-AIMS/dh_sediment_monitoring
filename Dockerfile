@@ -132,6 +132,7 @@ RUN R -e "options(repos = \
   install.packages('emmeans');   \
   install.packages('DHARMa');   \
   install.packages('patchwork');   \
+  install.packages('brms');   \
 "  
 
 
