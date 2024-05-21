@@ -9,6 +9,7 @@ RUN apt-get update \
     libgdal-dev \
     libproj-dev \
     libgeos-dev \
+    cmake \
   && rm -rf /var/lib/apt/lists/*
 
 ## A selection of tidyverse packages
