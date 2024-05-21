@@ -10,6 +10,7 @@ RUN apt-get update \
     libproj-dev \
     libgeos-dev \
     cmake \
+    libfontconfig1-dev \
   && rm -rf /var/lib/apt/lists/*
 
 ## A selection of tidyverse packages
