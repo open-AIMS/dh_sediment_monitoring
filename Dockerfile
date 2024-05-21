@@ -13,6 +13,8 @@ RUN apt-get update \
     libfontconfig1-dev \
     libharfbuzz-dev \
     libfribidi-dev \
+    glpk-utils \
+    libglpk-dev \ 
   && rm -rf /var/lib/apt/lists/*
 
 ## A selection of tidyverse packages
