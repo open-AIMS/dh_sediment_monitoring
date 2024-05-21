@@ -11,6 +11,8 @@ RUN apt-get update \
     libgeos-dev \
     cmake \
     libfontconfig1-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
   && rm -rf /var/lib/apt/lists/*
 
 ## A selection of tidyverse packages
