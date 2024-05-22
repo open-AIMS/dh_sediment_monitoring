@@ -15,6 +15,7 @@ RUN apt-get update \
     libfribidi-dev \
     glpk-utils \
     libglpk-dev \ 
+    git \ 
   && rm -rf /var/lib/apt/lists/*
 
 ## A selection of tidyverse packages
@@ -137,6 +138,11 @@ RUN R -e "options(repos = \
   install.packages('brms');   \
 "  
 
+RUN R -e "options(repos = \
+  list(CRAN = 'https://packagemanager.posit.co/cran/2024-02-20/')); \
+  install.packages('future');   \
+  install.packages('purrr');   \
+"  
 
 
 
