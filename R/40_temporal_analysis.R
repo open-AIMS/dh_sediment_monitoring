@@ -8,7 +8,9 @@
 #' @export
 module_temporal <- function() {
         status::status_set_stage(stage = 5, title = "Temporal analysis")
+        plan(multisession, workers = 4)
 
+        
         ## Retrieve the data from primary data
         data <- retrieve_processed_data(file = paste0(data_path, "processed/data.RData"))
 
@@ -21,33 +23,43 @@ module_temporal <- function() {
         ## Prepare model template
         data <- data |> prepare_model_template()
         ## Fit models
-        ##data |> slice(1) |> fit_models()
-        data <- data |> fit_models()
-        saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
-        ## data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
-        ## Validate models
-        data <- validate_models(data)
-        saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
-        ## Compile all the effects
-        data <- compile_baseline_vs_year_comparisons(data)
-        saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
-        ## Pairwise tests
-        ## Partial plots
-        ## Caterpillar plots
-##         get_prior(form, data = dat)
-##         summary(mod)
-##         conditional_effects(mod)
-##         mod |>
-##                 emmeans(~cYear) |>
-##                 pairs() |>
-##                 gather_emmeans_draws() |>
-##                 dplyr::select(-.chain) |>
-##                 summarise_draws(median, Pl = ~ mean(.x < 0), Pg = ~ mean(.x > 0))
-## library(glmmTMB)
-##         mod1 <- glmmTMB(Values ~ cYear + (1 | Site), data = dat, family = Gamma(link = "log"))
-##         mod1 |>
-##                 emmeans(~cYear) |>
-##                 pairs() 
+        ## promise <- future_promise({
+        ##   data <- data |> fit_models()
+        ##   saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+        ##   data
+        ## })
+          data <- data |> fit_models()
+          saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+        
+        ## if the future promise has finished, do the following
+        if (1 == 2) {
+          
+          data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
+          ## data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
+          ## Validate models
+          data <- validate_models(data)
+          saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+          ## Compile all the effects
+          data <- compile_baseline_vs_year_comparisons(data)
+          saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+          ## Pairwise tests
+          ## Partial plots
+          ## Caterpillar plots
+          ##         get_prior(form, data = dat)
+          ##         summary(mod)
+          ##         conditional_effects(mod)
+          ##         mod |>
+          ##                 emmeans(~cYear) |>
+          ##                 pairs() |>
+          ##                 gather_emmeans_draws() |>
+          ##                 dplyr::select(-.chain) |>
+          ##                 summarise_draws(median, Pl = ~ mean(.x < 0), Pg = ~ mean(.x > 0))
+          ## library(glmmTMB)
+          ##         mod1 <- glmmTMB(Values ~ cYear + (1 | Site), data = dat, family = Gamma(link = "log"))
+          ##         mod1 |>
+          ##                 emmeans(~cYear) |>
+          ##                 pairs() 
+        }
 }
 
 
@@ -191,17 +203,18 @@ fit_models <- function(data) {
         .l = list(data, form, priors, template),
         .f = ~ {
           nm <- paste0(
-                  data_path, "modelled/",
-                  sanitise_filename(paste0(
-                          "mod_", unique(..1$ZoneName), "__",
-                          unique(..1$Var), "___",
-                          unique(..1$Value_type)
-                  ))
+            data_path, "modelled/",
+            sanitise_filename(paste0(
+              "mod_", unique(..1$ZoneName), "__",
+              unique(..1$Var), "___",
+              unique(..1$Value_type)
+            ))
           )
           ## print(nm)
           mod_template <- readRDS(..4)
           recom <- ifelse(identical(mod_template$form, ..2), FALSE, TRUE)
           ## print(recom)
+          print(nm)
           capture.output(
             mod <- invisible(update(mod_template,
               form = ..2,

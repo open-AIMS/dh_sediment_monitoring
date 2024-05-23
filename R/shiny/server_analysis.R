@@ -5,16 +5,21 @@ source("05_stats_functions.R")
 
 
 observeEvent(input$runAnalysisCode, {
-  if (!file.exists(paste0(data_path, "modelled/data.RData")))
-    module_temporal()
+  if (!file.exists(paste0(data_path, "modelled/data.RData"))) {
+    promise <- future_promise({
+      module_temporal()
+    })
+  }
+
+  if (file.exists(paste0(data_path, "modelled/data.RData"))) {
+    data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
+    effect_years <- data |>
+      dplyr::select(ZoneName, Type, Var, Value_type, effects) |>
+      unnest(c(effects)) |>
+      dplyr::select(ZoneName, Type, Var, Value_type, year) |>
+      distinct()
+  }
   
-  data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
-  effect_years <- data |>
-          dplyr::select(ZoneName, Type, Var, Value_type, effects) |>
-          unnest(c(effects)) |>
-          dplyr::select(ZoneName, Type, Var, Value_type, year) |>
-    distinct()
-    
   output$analysis_overview <- renderUI({
     fluidPage(
       fluidRow(

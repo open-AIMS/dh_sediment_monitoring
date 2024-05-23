@@ -161,8 +161,13 @@ WORKDIR /home/project
 
 COPY run.sh /home/project/run.sh
 
+RUN mkdir /home/project1
+COPY R/ /home/project1/R
+COPY parameters/ /home/project1/parameters
+COPY run.sh /home/project1/run.sh
+
 # RUN cd ~/project
 
-ENTRYPOINT ["/home/project/run.sh"]
+ENTRYPOINT ["/home/project1/run.sh"]
 
 EXPOSE 3838

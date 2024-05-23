@@ -71,7 +71,7 @@ load_packages <- function() {
       "tidyverse", "testthat", "cli", "rlang", "crayon",
       "assertthat", "lubridate", "rmarkdown", "bookdown",
       "sf", "validate", "status", "plotly", "brms", "emmeans", "tidybayes",
-      "DHARMa", "patchwork"
+      "DHARMa", "patchwork", "future", "purrr", "promises"
     )
 
     for (p in pkgs) {
