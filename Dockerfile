@@ -165,7 +165,7 @@ COPY R/ /home/project1/R
 COPY parameters/ /home/project1/parameters
 COPY run.sh /home/project1/run.sh
 
-WORKDIR /home/project
+WORKDIR /home/project1
 
 # RUN cd ~/project
 
