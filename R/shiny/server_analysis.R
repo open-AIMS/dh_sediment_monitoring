@@ -18,7 +18,6 @@ observeEvent(input$runAnalysisCode, {
       unnest(c(effects)) |>
       dplyr::select(ZoneName, Type, Var, Value_type, year) |>
       distinct()
-  }
   
   output$analysis_overview <- renderUI({
     fluidPage(
@@ -561,6 +560,6 @@ observeEvent(input$runAnalysisCode, {
 
 
   toggle_buttons(status_$status, stage =  5, bttn1 = "runEDACode", bttn2 = "runAnalysisCode")
+    }
 })
-
 
