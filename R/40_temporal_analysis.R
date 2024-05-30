@@ -39,7 +39,7 @@ module_temporal <- function() {
         saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
         ## Compile all the effects
         data <- compile_baseline_vs_year_comparisons(data)
-        saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+        saveRDS(data, file = paste0(data_path, "modelled/data_all.RData"))
           ## Pairwise tests
           ## Partial plots
           ## Caterpillar plots

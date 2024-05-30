@@ -5,14 +5,14 @@ source("05_stats_functions.R")
 
 
 observeEvent(input$runAnalysisCode, {
-  if (!file.exists(paste0(data_path, "modelled/data.RData"))) {
+  if (!file.exists(paste0(data_path, "modelled/data_all.RData"))) {
     promise <- future_promise({
       module_temporal()
     })
   }
 
-  if (file.exists(paste0(data_path, "modelled/data.RData"))) {
-    data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
+  if (file.exists(paste0(data_path, "modelled/data_all.RData"))) {
+    data <- readRDS(file = paste0(data_path, "modelled/data_all.RData"))
     effect_years <- data |>
       dplyr::select(ZoneName, Type, Var, Value_type, effects) |>
       unnest(c(effects)) |>
