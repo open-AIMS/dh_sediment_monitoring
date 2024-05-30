@@ -6,6 +6,7 @@ git clone https://github.com/open-AIMS/dh_sediment_monitoring.git ../project1/te
 #cp -r ../project1/temp/md ../project/md
 #cp -r ../project1/temp/parameters ../project/parameters
 #rm -R ../project1/temp
+echo "hello"
 cd /home/project
 cd R
 Rscript run.R 
