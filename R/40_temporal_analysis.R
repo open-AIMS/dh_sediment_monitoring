@@ -28,20 +28,18 @@ module_temporal <- function() {
         ##   saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
         ##   data
         ## })
-          data <- data |> fit_models()
-          saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+        data <- data |> fit_models()
+        saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
         
-        ## if the future promise has finished, do the following
-        if (1 == 2) {
-          
-          data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
-          ## data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
-          ## Validate models
-          data <- validate_models(data)
-          saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
-          ## Compile all the effects
-          data <- compile_baseline_vs_year_comparisons(data)
-          saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+        ##data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
+        ## data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
+
+        ## Validate models
+        data <- validate_models(data)
+        saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+        ## Compile all the effects
+        data <- compile_baseline_vs_year_comparisons(data)
+        saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
           ## Pairwise tests
           ## Partial plots
           ## Caterpillar plots
@@ -59,7 +57,6 @@ module_temporal <- function() {
           ##         mod1 |>
           ##                 emmeans(~cYear) |>
           ##                 pairs() 
-        }
 }
 
 
@@ -163,7 +160,7 @@ prepare_priors <- function(data) {
 prepare_model_template <- function(data) {
   status::status_try_catch(
   {
-    data |>
+      data |>
       mutate(template = pmap(
         .l = list(data, form, priors),
         .f = ~ {
@@ -180,9 +177,11 @@ prepare_model_template <- function(data) {
               backend = "cmdstanr",
               refresh = 0,
               silent = 2,
-              #seed =  123,
+              # seed =  123,
               control = list(adapt_delta = 0.95)
-            ) |> suppressWarnings() |> suppressMessages()
+            ) |>
+              suppressWarnings() |>
+              suppressMessages()
             saveRDS(mod, file = nm)
           }
           nm
@@ -194,6 +193,15 @@ prepare_model_template <- function(data) {
   item_ = "prepare_model_template"
   )
 }
+
+formula_same <- function(form1, form2) {
+  f1 <- form1$formula |> as.character()
+  f2 <- form2$formula |> as.character()
+  fam1 <- form1$family
+  fam2 <- form1$family
+  ifelse(identical(f1, f2) & identical(fam1, fam2), TRUE, FALSE)
+}
+
 
 fit_models <- function(data) {
   status::status_try_catch(
@@ -211,31 +219,37 @@ fit_models <- function(data) {
             ))
           )
           ## print(nm)
-          mod_template <- readRDS(..4)
-          recom <- ifelse(identical(mod_template$form, ..2), FALSE, TRUE)
-          ## print(recom)
-          print(nm)
-          capture.output(
-            mod <- invisible(update(mod_template,
-              form = ..2,
-              newdata = ..1,
-              prior = ..3,
-              sample_prior = "yes",
-              recompile = recom,
-              iter = 5000,
-              chains = 3, cores = 3,
-              warmup = 1000,
-              thin = 5,
-              backend = "cmdstanr",
-              refresh = 0,
-              silent = 2,
-              file = nm,
-              file_refit = "on_change",
-              seed = 123,
-              control = list(adapt_delta = 0.95)
-            ) |> suppressWarnings() |> suppressMessages()),
-            file = nullfile()
-          )
+          ## mod_template <- readRDS(..4)
+          ## recom <- !formula_same(mod_template$form, ..2)
+          ## Determine whether the model should be re-run (based on
+          ## whether it already exists or not)
+          if (!file.exists(paste0(nm, ".rds"))) {
+            ## ## Determine whether the model should be recompiled
+            ## mod_template <- readRDS(..4)
+            ## recom <- !formula_same(mod_template$form, ..2)
+            capture.output(
+              mod <- invisible(update(mod_template,
+                form = ..2,
+                newdata = ..1,
+                prior = ..3,
+                sample_prior = "yes",
+                ## recompile = recom,
+                recompile = FALSE,
+                iter = 5000,
+                chains = 3, cores = 3,
+                warmup = 1000,
+                thin = 5,
+                backend = "cmdstanr",
+                refresh = 0,
+                silent = 2,
+                file = nm,
+                file_refit = "on_change",
+                seed = 123,
+                control = list(adapt_delta = 0.95)
+              ) |> suppressWarnings() |> suppressMessages()),
+              file = nullfile()
+            )
+          }
           paste0(nm, ".rds")
         },
         .progress = TRUE
@@ -395,21 +409,29 @@ validate_models <- function(data) {
     mutate(valid = map(
       .x = fit,
       .f = ~ {
-        mod <- readRDS(.x)
-        capture.output(
-          resids <- make_brms_dharma_res(mod, integerResponse = FALSE) |>
-            suppressWarnings() |>
-            suppressMessages(),
-          file = nullfile()
-        )
-        capture.output(
-          v <- validate_model(resids) |>
-            suppressWarnings() |>
-            suppressMessages(),
-          file = nullfile()
-        )
         nm <- str_replace(.x, "mod_", "resids_")
-        saveRDS(resids, file = nm)
+        nm2 <- str_replace(.x, "mod_", "valid_")
+        if (!file.exists(nm)) {
+          mod <- readRDS(.x)
+          capture.output(
+            resids <- make_brms_dharma_res(mod, integerResponse = FALSE) |>
+              suppressWarnings() |>
+              suppressMessages(),
+            file = nullfile()
+          )
+          saveRDS(resids, file = nm)
+          capture.output(
+            v <- validate_model(resids) |>
+              suppressWarnings() |>
+              suppressMessages(),
+            file = nullfile()
+          )
+          df <- data.frame(nm = nm) |> bind_cols(v)
+          saveRDS(df, file = nm2)
+        } else {
+          df <- readRDS(file = nm2)
+          v <- df |> dplyr::select(-nm)
+        }
         cbind(nm, v)
       },
       .progress = TRUE
@@ -463,9 +485,17 @@ compile_baseline_vs_year_comparisons <- function(data) {
       mutate(effects = map2(
         .x = data, .y = fit,
         .f = ~ {
-          if (length(unique(.x$Baseline)) > 1) {
-            compare_baseline_vs_years_summ(.x, readRDS(file = .y))
+          nm <- str_replace(.y, "mod_", "effects_")
+          if (!file.exists(nm)) {
+            comp <- NULL
+            if (length(unique(.x$Baseline)) > 1) {
+              comp <- compare_baseline_vs_years_summ(.x, readRDS(file = .y))
+              saveRDS(comp, file = nm)
+            }
+          } else {
+            comp <- readRDS(file = nm)
           }
+          comp
         },
         .progress = TRUE
       )) 
