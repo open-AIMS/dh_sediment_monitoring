@@ -142,6 +142,7 @@ RUN R -e "options(repos = \
   list(CRAN = 'https://packagemanager.posit.co/cran/2024-02-20/')); \
   install.packages('future');   \
   install.packages('purrr');   \
+  install.packages('insight');   \
 "  
 
 
