@@ -8,9 +8,8 @@
 #' @export
 module_temporal <- function() {
         status::status_set_stage(stage = 5, title = "Temporal analysis")
-        plan(multisession, workers = 4)
+        ## plan(multisession, workers = 4)
 
-        
         ## Retrieve the data from primary data
         data <- retrieve_processed_data(file = paste0(data_path, "processed/data.RData"))
 
@@ -35,6 +34,8 @@ module_temporal <- function() {
         ## data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
 
         ## Validate models
+        print("here")
+        print(data)
         data <- validate_models(data)
         saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
         ## Compile all the effects
@@ -250,6 +251,17 @@ fit_models <- function(data) {
               file = nullfile()
             )
           }
+          sink(
+            file = paste0(data_path, "temp.log"),
+            append = TRUE
+          )
+          cat(paste(nm, "\n"))
+          sink()
+          print(nm)
+          ## file.copy(paste0(status_$settings$status_dir$item, "/", status_$settings$log_file$item),
+          ##   paste0(data_path, "temp.log"),
+          ##     overwrite = TRUE
+          ##   )
           paste0(nm, ".rds")
         },
         .progress = TRUE
@@ -483,7 +495,8 @@ compile_baseline_vs_year_comparisons <- function(data) {
     data |>
       dplyr::select(-any_of(c("form", "priors", "template"))) |>
       mutate(effects = map2(
-        .x = data, .y = fit,
+        .x = data,
+        .y = fit,
         .f = ~ {
           nm <- str_replace(.y, "mod_", "effects_")
           if (!file.exists(nm)) {

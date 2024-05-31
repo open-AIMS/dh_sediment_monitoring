@@ -5,12 +5,12 @@ source("05_stats_functions.R")
 
 
 observeEvent(input$runAnalysisCode, {
+  print("Made it to here")
   if (!file.exists(paste0(data_path, "modelled/data_all.RData"))) {
     promise <- future_promise({
       module_temporal()
     })
   }
-print("Made it to here")
   if (file.exists(paste0(data_path, "modelled/data_all.RData"))) {
     data <- readRDS(file = paste0(data_path, "modelled/data_all.RData"))
     effect_years <- data |>
