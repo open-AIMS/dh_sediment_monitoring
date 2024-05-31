@@ -144,6 +144,7 @@ RUN R -e "options(repos = \
   install.packages('purrr');   \
   install.packages('insight');   \
   install.packages('HDInterval');   \
+  install.packages('gridGraphics');   \
 "  
 
 

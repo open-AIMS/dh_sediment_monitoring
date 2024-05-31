@@ -88,6 +88,7 @@ load_packages <- function() {
         paste(missing, collapse = ", ")
       ))
     }
+    plan(multisession)
   },
   stage_ = 1,
   name_ = "Load package dependencies",

@@ -7,7 +7,7 @@ source("05_stats_functions.R")
 observeEvent(input$runAnalysisCode, {
   print("Made it to here")
   if (!file.exists(paste0(data_path, "modelled/data_all.RData"))) {
-    promise <- future_promise({
+    promise <- promises::future_promise({
       module_temporal()
     })
   }
