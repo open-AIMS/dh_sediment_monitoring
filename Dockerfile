@@ -143,6 +143,7 @@ RUN R -e "options(repos = \
   install.packages('future');   \
   install.packages('purrr');   \
   install.packages('insight');   \
+  install.packages('HDInterval');   \
 "  
 
 
