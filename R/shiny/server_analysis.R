@@ -9,14 +9,16 @@ variable_value <- reactiveVal()
 mod_value <- reactiveVal()
 
 observeEvent(input$runAnalysisCode, {
-  promises::future_promise(
-  {
-      module_temporal()
-      readRDS(file = paste0(data_path, "modelled/data_all.RData"))
-    }) %...>%
-      analysis_data()
-
-    toggle_buttons(status_$status, stage =  5, bttn1 = "runAnalysisCode", bttn2 = NULL)
+  prom <- promises::future_promise({
+    module_temporal()
+    readRDS(file = paste0(data_path, "modelled/data_all.RData"))
+  })
+  prom %...>%
+    analysis_data() %...>%
+    ## Must wrap the following in braces if it wants to pass in status_$status
+    {
+      toggle_buttons(status_$status, stage =  5, bttn1 = "runAnalysisCode", bttn2 = NULL)
+    }
     ## Hide the async operation from Shiny by not having the promise
     ## be the last expression. Without doing so, the main process will
     ## still be waiting.
