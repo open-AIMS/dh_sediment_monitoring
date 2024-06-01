@@ -11,4 +11,5 @@ server <- function(input, output, session) {
   source("shiny/server_processed_data.R", local = TRUE)
   source("shiny/server_eda.R", local = TRUE)
   source("shiny/server_analysis.R", local = TRUE)
+  ## source("shiny/test.R", local = TRUE)
 }

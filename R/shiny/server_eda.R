@@ -399,7 +399,7 @@ represent non-\"Baseline\" samples. "
     })
   })
 
-  toggle_buttons(status_$status, stage =  4, bttn1 = "runEDACode", bttn2 = NULL)
+  toggle_buttons(status_$status, stage =  4, bttn1 = "runEDACode", bttn2 = "runAnalysisCode")
 })
 
 

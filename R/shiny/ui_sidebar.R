@@ -15,5 +15,6 @@ sidebar <- dashboardSidebar(
     actionButton("runEDACode", "Run Stage 4", icon = icon("play"), class = "btn-disabled"),
     actionButton("runAnalysisCode", "Run Stage 5", icon = icon("play"), class = "btn-disabled")
     ## actionBttn("runEDACode", "Run Stage 4", style = "unite", color = "primary", icon = icon("play"))
+    ## actionButton("runTestCode", "Run Test", icon = icon("play"), class = "btn-enabled")
   )
 )
