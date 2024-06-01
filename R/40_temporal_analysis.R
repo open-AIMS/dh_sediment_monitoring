@@ -7,57 +7,62 @@
 ##' @author Murray Logan
 #' @export
 module_temporal <- function() {
-        status::status_set_stage(stage = 5, title = "Temporal analysis")
-        ## plan(multisession, workers = 4)
+  ## Dont remove the following two lines. I dont know why, but without
+  ## them, this future promise does not seem to be able to find the
+  ## status or log file
+  print(status_file)
+  print(log_file)
+  
+  status::status_set_stage(stage = 5, title = "Temporal analysis")
+  ## plan(multisession, workers = 4)
 
-        ## Retrieve the data from primary data
-        data <- retrieve_processed_data(file = paste0(data_path, "processed/data.RData"))
+  ## Retrieve the data from primary data
+  data <- retrieve_processed_data(file = paste0(data_path, "processed/data.RData"))
 
-        ## Prepare data - add the replicate and duplicate stuff in to prepare_data()
-        data <- data |> prepare_data()
-        ## Prepare formula
-        data <- data |> prepare_formula()
-        ## Prepare priors
-        data <- data |> prepare_priors()
-        ## Prepare model template
-        data <- data |> prepare_model_template()
-        ## Fit models
-        ## promise <- future_promise({
-        ##   data <- data |> fit_models()
-        ##   saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
-        ##   data
-        ## })
-        data <- data |> fit_models()
-        saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
-        
-        ##data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
-        ## data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
+  ## Prepare data - add the replicate and duplicate stuff in to prepare_data()
+  data <- data |> prepare_data()
+  ## Prepare formula
+  data <- data |> prepare_formula()
+  ## Prepare priors
+  data <- data |> prepare_priors()
+  ## Prepare model template
+  data <- data |> prepare_model_template()
+  ## Fit models
+  ## promise <- future_promise({
+  ##   data <- data |> fit_models()
+  ##   saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+  ##   data
+  ## })
 
-        ## Validate models
-        print("here")
-        print(data)
-        data <- validate_models(data)
-        saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
-        ## Compile all the effects
-        data <- compile_baseline_vs_year_comparisons(data)
-        saveRDS(data, file = paste0(data_path, "modelled/data_all.RData"))
-          ## Pairwise tests
-          ## Partial plots
-          ## Caterpillar plots
-          ##         get_prior(form, data = dat)
-          ##         summary(mod)
-          ##         conditional_effects(mod)
-          ##         mod |>
-          ##                 emmeans(~cYear) |>
-          ##                 pairs() |>
-          ##                 gather_emmeans_draws() |>
-          ##                 dplyr::select(-.chain) |>
-          ##                 summarise_draws(median, Pl = ~ mean(.x < 0), Pg = ~ mean(.x > 0))
-          ## library(glmmTMB)
-          ##         mod1 <- glmmTMB(Values ~ cYear + (1 | Site), data = dat, family = Gamma(link = "log"))
-          ##         mod1 |>
-          ##                 emmeans(~cYear) |>
-          ##                 pairs() 
+  data <- data |> fit_models()
+  saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+  
+  ##data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
+  ## data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
+
+  ## Validate models
+  data <- validate_models(data)
+  saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+  ## Compile all the effects
+  data <- compile_baseline_vs_year_comparisons(data)
+  saveRDS(data, file = paste0(data_path, "modelled/data_all.RData"))
+  ## Pairwise tests
+  ## Partial plots
+  ## Caterpillar plots
+  ##         get_prior(form, data = dat)
+  ##         summary(mod)
+  ##         conditional_effects(mod)
+  ##         mod |>
+  ##                 emmeans(~cYear) |>
+  ##                 pairs() |>
+  ##                 gather_emmeans_draws() |>
+  ##                 dplyr::select(-.chain) |>
+  ##                 summarise_draws(median, Pl = ~ mean(.x < 0), Pg = ~ mean(.x > 0))
+  ## library(glmmTMB)
+  ##         mod1 <- glmmTMB(Values ~ cYear + (1 | Site), data = dat, family = Gamma(link = "log"))
+  ##         mod1 |>
+  ##                 emmeans(~cYear) |>
+  ##                 pairs() 
 }
 
 
@@ -251,13 +256,13 @@ fit_models <- function(data) {
               file = nullfile()
             )
           }
-          sink(
-            file = paste0(data_path, "temp.log"),
-            append = TRUE
-          )
-          cat(paste(nm, "\n"))
-          sink()
-          print(nm)
+          ## sink(
+          ##   file = paste0(data_path, "temp.log"),
+          ##   append = TRUE
+          ## )
+          ## cat(paste(nm, "\n"))
+          ## sink()
+          ## print(nm)
           ## file.copy(paste0(status_$settings$status_dir$item, "/", status_$settings$log_file$item),
           ##   paste0(data_path, "temp.log"),
           ##     overwrite = TRUE

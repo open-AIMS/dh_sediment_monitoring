@@ -9,7 +9,8 @@ variable_value <- reactiveVal()
 mod_value <- reactiveVal()
 
 observeEvent(input$runAnalysisCode, {
-    promises::future_promise({
+  promises::future_promise(
+  {
       module_temporal()
       readRDS(file = paste0(data_path, "modelled/data_all.RData"))
     }) %...>%
