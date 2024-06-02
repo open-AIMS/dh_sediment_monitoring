@@ -168,7 +168,7 @@ by user.
 ## Installing docker desktop
 
 To retrieve and run docker containers requires the installation of
-[Docker Desktop][https://www.docker.com/products/docker-desktop/] on
+[Docker Desktop](https://www.docker.com/products/docker-desktop/) on
 Windows and MacOSx
 
 ### Windows
@@ -176,7 +176,7 @@ Windows and MacOSx
 The steps for installing Docker Desktop are:
 
 - **Download the Installer:** head to
-  https://docs.docker.com/desktop/install/windows-install/ and follow
+  <https://docs.docker.com/desktop/install/windows-install/> and follow
   the instructions for downloading the appropriate installer for your
   Windows version (Home or Pro).
 
