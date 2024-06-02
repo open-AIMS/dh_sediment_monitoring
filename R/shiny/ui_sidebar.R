@@ -10,9 +10,6 @@ tags$head(tags$style(".inactiveLink {
                            color: orange !important;
                            cursor: pointer;
                            }
-.skin-blue .sidebar-menu>li:hover>a {
- font-weight: bold;
-}
     ")),
 
 ## tags$style(HTML(".main-sidebar .sidebar .sidebar-menu .treeview-menu li.active a {color: #1E282C !important;}")),
