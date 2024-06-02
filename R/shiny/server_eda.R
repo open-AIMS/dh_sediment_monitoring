@@ -400,6 +400,8 @@ represent non-\"Baseline\" samples. "
   })
 
   toggle_buttons(status_$status, stage =  4, bttn1 = "runEDACode", bttn2 = "runAnalysisCode")
+  shinyjs::enable(selector = "a[data-value='eda']")
+  addCssClass(selector = "a[data-value='eda']", class = "activeLink")
 })
 
 

@@ -18,6 +18,8 @@ observeEvent(input$runAnalysisCode, {
     ## Must wrap the following in braces if it wants to pass in status_$status
     {
       toggle_buttons(status_$status, stage =  5, bttn1 = "runAnalysisCode", bttn2 = NULL)
+      shinyjs::enable(selector = "a[data-value='analysis']")
+      addCssClass(selector = "a[data-value='analysis']", class = "activeLink")
     }
     ## Hide the async operation from Shiny by not having the promise
     ## be the last expression. Without doing so, the main process will

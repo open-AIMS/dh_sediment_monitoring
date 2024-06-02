@@ -1,5 +1,23 @@
 sidebar <- dashboardSidebar(
   sidebarMenu(
+tags$head(tags$style(".inactiveLink {
+                           pointer-events: none;
+                           color: grey !important;
+                           cursor: default;
+                           }
+                      .activeLink {
+                           pointer-events: auto;
+                           color: orange !important;
+                           cursor: pointer;
+                           }
+.skin-blue .sidebar-menu>li:hover>a {
+ font-weight: bold;
+}
+    ")),
+
+## tags$style(HTML(".main-sidebar .sidebar .sidebar-menu .treeview-menu li.active a {color: #1E282C !important;}")),
+##         tags$style(HTML(".main-sidebar .sidebar .sidebar-menu .treeview-menu li:hover a {color: #1E282C !important;}")),
+
     menuItem("Landing", tabName = "landing", icon = icon("home")),
     menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
     ## menuItem("Settings", tabName = "settings", icon = icon("sliders")),

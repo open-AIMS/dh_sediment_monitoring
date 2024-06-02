@@ -21,6 +21,8 @@ observeEvent(input$runLoadCode, {
 
   toggle_buttons(status_$status, stage =  1, bttn1 = "runLoadCode", bttn2 = "runProcessCode")
   
+  shinyjs::enable(selector = "a[data-value='data']")
+  addCssClass(selector = "a[data-value='data']", class = "activeLink")
 })
 
 

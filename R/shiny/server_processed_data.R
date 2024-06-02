@@ -31,6 +31,7 @@ observeEvent(input$runProcessCode, {
   })
 
   toggle_buttons(status_$status, stage =  3, bttn1 = "runProcessCode", bttn2 = "runEDACode")
+  ## addCssClass(selector = "a[data-value='eda']", class = "activeLink")
 })
 
 
