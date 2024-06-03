@@ -248,6 +248,19 @@ are excel files that adhere to the structure outlined in
 
 ## Data {#sec-data}
 
-<span class="fas fa-circle-check"></span>
+### Raw data panel
+
+{{< include ../md/data_raw_instructions.md >}}
+
+
+### Processed data panel
+
+::: {.callout-note}
+This panel will not become active until the completion of Stage 3.
+:::
+
+
+{{< include ../md/processed_data_instructions.md >}}
+
 
 {{< fa thumbs-up >}} 

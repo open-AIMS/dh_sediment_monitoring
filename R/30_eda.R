@@ -54,6 +54,8 @@ eda_temporal <- function(data) {
       nest_by(Initial_quarter, .keep = TRUE) |>
       mutate(Plot = list({
         data |>
+          filter(!is.na(Values)) |>
+          droplevels() |> 
                 ggplot(aes(y = Site, x = Acquire_date_time)) +
                 geom_line() +
                 geom_point(aes(colour = Baseline)) +
@@ -99,6 +101,8 @@ eda_type_temporal <- function(data) {
       nest_by(ZoneName, Type, .keep = TRUE) |>
       mutate(Plot = list({
         data |>
+          filter(!is.na(Values)) |>
+          droplevels() |> 
           ggplot(aes(y = Site, x = Acquire_date_time)) +
           ## geom_line(color = "gray50") +
           geom_point(aes(colour = Baseline), fill = NA, shape = 16) +

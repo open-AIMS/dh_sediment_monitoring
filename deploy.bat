@@ -7,7 +7,7 @@ set image=ghcr.io/open-aims/dh_sediment_monitoring:main
 :: A port for the docker container
 set container_port=3838
 :: The location to mount the input data folder in the containter
-set input_mount=/home/project/input
+set input_mount=/home/project
 
 
 :: === CHECK DOCKER IS INSTALLED ===
