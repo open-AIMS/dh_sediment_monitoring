@@ -21,13 +21,16 @@ jobs:
     steps:
       - name: Install Google Fonts
         run: |
-          wget -O architects_daughter.zip https://fonts.google.com/download?family=Architects%20Daughter
-          unzip -d architects_daughter/ architects_daughter.zip
-          mv architects_daughter /usr/share/fonts/
+          # wget -O architects_daughter.zip https://fonts.google.com/download?family=Architects%20Daughter
+          # unzip -d architects_daughter/ architects_daughter.zip
+          # mv architects_daughter /usr/share/fonts/
+          wget -O ArchitectsDaughter-Regular.ttf https://github.com/google/fonts/raw/main/ofl/architectsdaughter/ArchitectsDaughter-Regular.ttf
+          mkdir -p /usr/share/fonts/architects_daughter
+          mv ArchitectsDaughter-Regular.ttf /usr/share/fonts/architects_daughter/
           fc-cache -fv
           fc-list
           fc-list -v | grep -i archi
-          
+    
       - name: Checkout repository
         uses: actions/checkout@v4
         
