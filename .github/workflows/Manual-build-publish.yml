@@ -68,7 +68,7 @@ jobs:
       - name: Install fontawsome quarto extension
         run: |
           cd docs
-          quarto add quarto-ext/fontawesome
+          quarto add --no-prompt quarto-ext/fontawesome
           cd ..
           
       # render manual
