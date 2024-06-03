@@ -64,6 +64,13 @@ jobs:
       - name: Install quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
+      # install quarto extension (fontawsome) 
+      - name: Install fontawsome quarto extension
+        run: |
+          cd docs
+          quarto add quarto-ext/fontawesome
+          cd ..
+          
       # render manual
       - name: Make manual
         run: make -i docs_local

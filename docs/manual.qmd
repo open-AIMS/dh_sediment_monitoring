@@ -248,4 +248,3 @@ are excel files that adhere to the structure outlined in
 
 ## Data {#sec-data}
 
-{{< fa thumbs-up >}}
