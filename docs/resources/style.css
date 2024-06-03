@@ -1,0 +1,82 @@
+.fa-circle-check {
+    color: green; 
+}
+
+.fa-clock {
+    color: orange;
+}
+
+.fa-circle-exclamation {
+    color: orange;
+}
+
+.fa-circle-xmark {
+    color: red;
+}
+
+#log_output {
+    height: 200px;
+    overflow-y: auto;
+    display:flex;
+    flex-direction: column-reverse;
+}
+
+.callout {
+    border-left: 3px solid #BBB;
+    background-color: #EEE;
+    display: block;
+    position: relative;
+    overflow: auto;
+}
+
+.call-info {
+    border: 1px solid #0288D1;
+    background-color: #D3EFFF;
+    font-size: 17px;
+    border-left: 3px solid #0288D1;
+}
+
+.callout h4 {
+    color: black;
+    font-weight: 500;
+}
+.call-info h4::before {
+    content: "🛈" ;
+    color: #0288D1;
+    padding-right: 10px;
+    vertical-align: middle;
+    display: inline-block;
+
+}
+
+.table-minimal table {
+  border: 2px solid #000000;
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+.table-minimal td, .table-minimal th {
+  border: 1px solid #000000;
+  padding: 5px 4px;
+}
+.table-minimal tbody td {
+  font-size: 13px;
+}
+.table-minimal thead {
+  background: #D0E4F5;
+  border-bottom: 1px solid #000000;
+}
+.table-minimal thead th {
+  font-size: 15px;
+  font-weight: bold;
+  color: #000000;
+  text-align: left;
+  border-left: 1px solid #D0E4F5;
+}
+.table-minimal thead th:first-child {
+  border-left: none;
+}
+
+.table-minimal tfoot td {
+  font-size: 14px;
+}

@@ -112,8 +112,8 @@ successive stage of the pipeline.  The stages are:
 Underneath the sidebar menu there are a series of buttons that control
 progression through the analysis pipeline stages. When a button is
 blue (and has a play icon), it indicates that the Stage is the next
-Stage to be run in the pipeline. Buttons with a grey border and label
-are disabled.
+Stage to be run in the pipeline. Once a stage has run, the button will
+turn green. Grey buttons are disabled.
 
 Clicking on button will run that stage. Once a stage has run, the
 button will change to either green (success), yellow (orange) or red
@@ -121,4 +121,22 @@ button will change to either green (success), yellow (orange) or red
 If the stage was completed successfully, the bottom corresponding to
 the next available stage will be activated.
 
+Sidebar menu items that are in orange font are active and clicking on
+an active menu item will reveal an associated page. Inactive menu
+items are in grey font. Menu items will only become active once the
+appropriate run stage has been met. The following table lists the
+events that activate a menu item.
+
+<div class="table-minimal">
+
+| Menu Item                 | Trigger Event |
+|---------------------------|---------------|
+| Landing                   | Always active |
+| Dashboard                 | Always active |
+| Data                      | After Stage 2 |
+| Exploratory Data Analysis | After Stage 4 |
+| Analysis                  | After Stage 5 |
+| Manual                    | Always active |
+
+</div>
 

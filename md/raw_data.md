@@ -1,5 +1,6 @@
 To be valid, input data must be excel files (*.xlsx) comprising at
-least the following sheets:
+least the following sheets (each of which must at least have the
+fields listed in their respective tables):
 
   - metals
 

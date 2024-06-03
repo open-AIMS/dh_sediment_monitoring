@@ -204,10 +204,48 @@ Additional Tips:
 
 ## Installing the and running the app
 
-Instructions for `docker pull` and then `docker run`
-**Perhaps I should write a script that performs both of these actions**
+The task of installing and running the app is performed via a single
+**deploy script** (`deploy.bat` on Windows or `deploy.sh` on
+Linux/MacOSX/wsl). For this to work properly, the deploy script should
+be placed in a folder along with a folder (called `input`) that
+containsthe input datasets (in excel format). This structure is
+illustrated below for Windows.
+
+```
+\
+|- deploy.bat
+|- input
+   |- dataset1.xlsx
+   |- dataset2.xlsx
+```
+
+::: {.callout-note}
+In the above illustration, there are two example datasets
+(`dataset1.xlsx` and `dataset2.xlsx`). The datasets need NOT be called
+`dataset1.xlsx`. They can have any name you choose, so long as they
+are excel files that adhere to the structure outlined in
+@sec-data-requirements.
+:::
+
 
 
 # The Darwin Harbour Sediment Monitoring Program Analysis App
 
 {{< include ../md/instructions.md >}}
+
+## Data requirements {#sec-data-requirements}
+
+{{< include ../md/raw_data.md >}}
+
+
+## Landing page {#sec-landing}
+
+{{< include ../md/settings.md >}}
+
+## Dashboard {#sec-dashboard}
+
+{{< include ../md/dashboard.md >}}
+
+## Data {#sec-data}
+
+{{< fa thumbs-up >}}
