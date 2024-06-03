@@ -225,7 +225,7 @@ fit_models <- function(data) {
             ))
           )
           ## print(nm)
-          ## mod_template <- readRDS(..4)
+          mod_template <- readRDS(..4)
           ## recom <- !formula_same(mod_template$form, ..2)
           ## Determine whether the model should be re-run (based on
           ## whether it already exists or not)
