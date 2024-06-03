@@ -216,31 +216,35 @@ fit_models <- function(data) {
       mutate(fit = pmap(
         .l = list(data, form, priors, template),
         .f = ~ {
+          l_d <- ..1
+          l_f <- ..2
+          l_p <- ..3
+          l_t <- ..4
           nm <- paste0(
             data_path, "modelled/",
             sanitise_filename(paste0(
-              "mod_", unique(..1$ZoneName), "__",
-              unique(..1$Var), "___",
-              unique(..1$Value_type)
+              "mod_", unique(l_d$ZoneName), "__",
+              unique(l_d$Var), "___",
+              unique(l_d$Value_type)
             ))
           )
           ## print(nm)
-          mod_template <- readRDS(..4)
-          ## recom <- !formula_same(mod_template$form, ..2)
+          mod_template <- readRDS(l_t)
+          recom <- !formula_same(mod_template$form, l_f)
           ## Determine whether the model should be re-run (based on
           ## whether it already exists or not)
           if (!file.exists(paste0(nm, ".rds"))) {
             ## ## Determine whether the model should be recompiled
-            ## mod_template <- readRDS(..4)
-            ## recom <- !formula_same(mod_template$form, ..2)
+            ## mod_template <- readRDS(l_t)
+            ## recom <- !formula_same(mod_template$form, l_f)
             capture.output(
               mod <- invisible(update(mod_template,
-                form = ..2,
-                newdata = ..1,
-                prior = ..3,
+                form = l_f,
+                newdata = l_d,
+                prior = l_p,
                 sample_prior = "yes",
-                ## recompile = recom,
-                recompile = FALSE,
+                recompile = recom,
+                ## recompile = FALSE,
                 iter = 5000,
                 chains = 3, cores = 3,
                 warmup = 1000,
