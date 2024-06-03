@@ -228,9 +228,10 @@ fit_models <- function(data) {
               unique(l_d$Value_type)
             ))
           )
-          ## print(nm)
+          print(nm)
           mod_template <- readRDS(l_t)
           recom <- !formula_same(mod_template$form, l_f)
+          print(paste("Recom: ", recom))
           ## Determine whether the model should be re-run (based on
           ## whether it already exists or not)
           if (!file.exists(paste0(nm, ".rds"))) {
