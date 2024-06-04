@@ -244,7 +244,7 @@ fit_models <- function(data) {
             ## utils::capture.output(
             ##   mod <- invisible(update(mod_template,
             ## mod <- update(mod_template,
-            mod <- brm(orm = l_f,
+            mod <- brm(form = l_f,
               ## newdata = l_d,
               data = l_d,
               prior = l_p,
