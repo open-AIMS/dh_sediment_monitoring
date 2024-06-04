@@ -212,8 +212,8 @@ formula_same <- function(form1, form2) {
 fit_models <- function(data) {
   status::status_try_catch(
   {
-    ## nm_l <- paste0(data_path, "modelled/aaa.log")
-    ## sink(nm_l, append = FALSE, type = "message")
+    nm_l <- paste0(data_path, "modelled/log_models.log")
+    sink(nm_l, append = FALSE, type = "output")
     data |>
       mutate(fit = pmap(
         .l = list(data, form, priors, template),
@@ -284,7 +284,7 @@ fit_models <- function(data) {
         },
         .progress = TRUE
       ))
-    ## sink()
+    sink()
   },
   stage_ = 5,
   name_ = "Fit models",
