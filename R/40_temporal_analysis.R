@@ -212,6 +212,8 @@ formula_same <- function(form1, form2) {
 fit_models <- function(data) {
   status::status_try_catch(
   {
+    nm_l <- paste0(data_path, "modelled/aaa.log")
+    sink(nm_l, append = TRUE)
     data |>
       mutate(fit = pmap(
         .l = list(data, form, priors, template),
@@ -229,7 +231,6 @@ fit_models <- function(data) {
             ))
           )
           print(nm)
-          nm_l <- paste0(data_path, "modelled/aaa.log")
           print(paste("Recom: ", recom))
           if (!file.exists(paste0(nm, ".rds"))) {
             ## Determine whether the model should be re-run (based on
@@ -239,7 +240,6 @@ fit_models <- function(data) {
 
             ## utils::capture.output(
             ##   mod <- invisible(update(mod_template,
-            sink(nm_l, append = TRUE)
             mod <- update(mod_template,
               form = l_f,
               newdata = l_d,
@@ -264,7 +264,6 @@ fit_models <- function(data) {
               ##   append = TRUE
               ## )
             )
-            sink()
           }
           ## sink(
           ##   file = paste0(data_path, "temp.log"),
@@ -281,6 +280,7 @@ fit_models <- function(data) {
         },
         .progress = TRUE
       ))
+    sink()
   },
   stage_ = 5,
   name_ = "Fit models",
