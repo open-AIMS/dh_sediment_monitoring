@@ -230,7 +230,7 @@ fit_models <- function(data) {
               unique(l_d$Value_type)
             ))
           )
-          cat(paste0(unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")\n"))
+          cat(paste0(unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"))
           if (!file.exists(paste0(nm, ".rds"))) {
             ## Determine whether the model should be re-run (based on
             ## whether it already exists or not)
@@ -267,7 +267,10 @@ fit_models <- function(data) {
               ##   file = nm_l,
               ##   append = TRUE
               ## )
+            cat("\t - model successfully fit\n")
             )
+          } else {
+            cat("\t - loaded from previous run\n")
           }
           ## sink(
           ##   file = paste0(data_path, "temp.log"),
