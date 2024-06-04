@@ -475,14 +475,14 @@ validate_models <- function(data) {
           ), file = nm_l, append = TRUE)
           if (!file.exists(nm)) {
             print("here")
-            ## mod <- readRDS(mod_s)
-            ## capture.output(
-            ##   resids <- make_brms_dharma_res(mod, integerResponse = FALSE) |>
-            ##     suppressWarnings() |>
-            ##     suppressMessages(),
-            ##   file = nullfile()
-            ## )
-            ## saveRDS(resids, file = nm)
+            mod <- readRDS(mod_s)
+            capture.output(
+              resids <- make_brms_dharma_res(mod, integerResponse = FALSE) |>
+                suppressWarnings() |>
+                suppressMessages(),
+              file = nullfile()
+            )
+            saveRDS(resids, file = nm)
             ## capture.output(
             ##   v <- validate_model(resids) |>
             ##     suppressWarnings() |>
