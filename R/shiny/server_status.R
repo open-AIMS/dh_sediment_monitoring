@@ -59,7 +59,9 @@ output$status_output <- renderUI({
 output$model_log_output <- renderText({
   model_log_reactive()
   ## if (exists(model_log_file)) {
-    model_log_content <- readLines(paste0(data_path, "modelled/log_models.log"))
+  model_log_content <- readLines(paste0(data_path, "modelled/log_models.log"),
+    warn = FALSE
+  )
     ## print(log_content)
     model_log_content <- paste(model_log_content, collapse = "\n")
     ## print(log_content)
@@ -79,7 +81,7 @@ model_log_reactive <- reactivePoll(1000, session,
   # This function returns the content of the status terminal output
   valueFunc = function() {
     ## if (exists(model_log_file)) {
-      readLines(paste0(data_path, "modelled/log_models.log"))
+      readLines(paste0(data_path, "modelled/log_models.log"), warn = FALSE)
     ## } else {
       ## ""
     ## }
