@@ -213,7 +213,7 @@ fit_models <- function(data) {
   status::status_try_catch(
   {
     nm_l <- paste0(data_path, "modelled/aaa.log")
-    sink(nm_l, append = TRUE, type = "output")
+    sink(nm_l, append = TRUE, type = "message")
     data |>
       mutate(fit = pmap(
         .l = list(data, form, priors, template),
