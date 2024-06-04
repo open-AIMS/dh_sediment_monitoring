@@ -213,7 +213,9 @@ fit_models <- function(data) {
   status::status_try_catch(
   {
     nm_l <- paste0(data_path, "modelled/aaa.log")
-    sink(nm_l, append = TRUE)
+    nm_l2 <- paste0(data_path, "modelled/aaa.log")
+    sink(nm_l, append = TRUE, type = "output")
+    sink(nm_l2, append = TRUE, type = "message")
     data |>
       mutate(fit = pmap(
         .l = list(data, form, priors, template),
@@ -237,6 +239,9 @@ fit_models <- function(data) {
             mod_template <- readRDS(l_t)
             recom <- !formula_same(mod_template$form, l_f)
             print(paste("Recom: ", recom))
+            print(l_f)
+            print(l_p)
+            print(l_d)
 
             ## utils::capture.output(
             ##   mod <- invisible(update(mod_template,
@@ -280,7 +285,8 @@ fit_models <- function(data) {
         },
         .progress = TRUE
       ))
-    sink()
+    sink(type = "message")
+    sink(type = "output")
   },
   stage_ = 5,
   name_ = "Fit models",
