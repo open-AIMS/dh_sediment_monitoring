@@ -52,8 +52,8 @@ module_temporal <- function() {
   )
 
   ## Compile all the effects
-  data <- compile_baseline_vs_year_comparisons(data)
-  saveRDS(data, file = paste0(data_path, "modelled/data_all.RData"))
+  #data <- compile_baseline_vs_year_comparisons(data)
+  #saveRDS(data, file = paste0(data_path, "modelled/data_all.RData"))
 
   ## Pairwise tests
   ## Partial plots
@@ -457,51 +457,51 @@ validate_models <- function(data) {
   {
     nm_l <- paste0(data_path, "modelled/log_models.log")
     total_number_of_models <- nrow(data)
-  data |>
+    data |>
       mutate(i = 1:n()) |> 
-    mutate(valid = pmap(
-      .l = list(fit, data, i),
-      .f = ~ {
-        mod_s <- ..1
-        l_d <- ..2
-        i <- ..3
-        nm <- str_replace(mod_s, "mod_", "resids_")
-        nm2 <- str_replace(mod_s, "mod_", "valid_")
-        cat(paste0(
-          i, "/", total_number_of_models, " (",
-          sprintf("% 3.1f%%", 100 * (i / total_number_of_models)), "): ",
-          unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
-        ), file = nm_l, append = TRUE)
-        if (!file.exists(nm)) {
-          print("here")
-          ## mod <- readRDS(mod_s)
-          ## capture.output(
-          ##   resids <- make_brms_dharma_res(mod, integerResponse = FALSE) |>
-          ##     suppressWarnings() |>
-          ##     suppressMessages(),
-          ##   file = nullfile()
-          ## )
-          ## saveRDS(resids, file = nm)
-          ## capture.output(
-          ##   v <- validate_model(resids) |>
-          ##     suppressWarnings() |>
-          ##     suppressMessages(),
-          ##   file = nullfile()
-          ## )
-          ## df <- data.frame(nm = nm) |> bind_cols(v)
-          ## saveRDS(df, file = nm2)
-          cat("\t - model successfully validated\n", file = nm_l, append = TRUE)
-          v <- NULL
-          
-        } else {
-          df <- readRDS(file = nm2)
-          v <- df |> dplyr::select(-nm)
-          cat("\t - model previously validated\n", file = nm_l, append = TRUE)
-        }
-        cbind(nm, v)
-      },
-      .progress = TRUE
-    ))
+      mutate(valid = pmap(
+        .l = list(fit, data, i),
+        .f = ~ {
+          mod_s <- ..1
+          l_d <- ..2
+          i <- ..3
+          nm <- str_replace(mod_s, "mod_", "resids_")
+          print(nm)
+          nm2 <- str_replace(mod_s, "mod_", "valid_")
+          cat(paste0(
+            i, "/", total_number_of_models, " (",
+            sprintf("% 3.1f%%", 100 * (i / total_number_of_models)), "): ",
+            unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
+          ), file = nm_l, append = TRUE)
+          if (!file.exists(nm)) {
+            print("here")
+            ## mod <- readRDS(mod_s)
+            ## capture.output(
+            ##   resids <- make_brms_dharma_res(mod, integerResponse = FALSE) |>
+            ##     suppressWarnings() |>
+            ##     suppressMessages(),
+            ##   file = nullfile()
+            ## )
+            ## saveRDS(resids, file = nm)
+            ## capture.output(
+            ##   v <- validate_model(resids) |>
+            ##     suppressWarnings() |>
+            ##     suppressMessages(),
+            ##   file = nullfile()
+            ## )
+            ## df <- data.frame(nm = nm) |> bind_cols(v)
+            ## saveRDS(df, file = nm2)
+            cat("\t - model successfully validated\n", file = nm_l, append = TRUE)
+            v <- NULL
+          } else {
+            df <- readRDS(file = nm2)
+            v <- df |> dplyr::select(-nm)
+            cat("\t - model previously validated\n", file = nm_l, append = TRUE)
+          }
+          cbind(nm, v)
+        },
+        .progress = TRUE
+      ))
   },
   stage_ = 5,
   name_ = "Validate models",
