@@ -213,7 +213,7 @@ fit_models <- function(data) {
   status::status_try_catch(
   {
     nm_l <- paste0(data_path, "modelled/log_models.log")
-    sink(nm_l, append = FALSE, type = "output")
+    sink(nm_l, append = FALSE)
     data |>
       mutate(fit = pmap(
         .l = list(data, form, priors, template),
@@ -291,6 +291,8 @@ fit_models <- function(data) {
   item_ = "fit_models"
   )
 }
+
+
 
 sanitise_filename <- function(nm) {
    str_replace_all(nm, "/", "\\.")

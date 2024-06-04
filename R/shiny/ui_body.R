@@ -48,6 +48,12 @@ tag_styles <- tags$style(HTML(
       display:flex;
       flex-direction: column-reverse;
     }
+    #model_log_output {
+      height: 200px;
+      overflow-y: auto;
+      display:flex;
+      flex-direction: column-reverse;
+    }
 
     .callout {
   border-left: 3px solid #BBB;

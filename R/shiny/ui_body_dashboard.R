@@ -26,6 +26,14 @@ dashboard_tab <- tabItem(
             collapsible = TRUE,
             status = "success",
             verbatimTextOutput("log_output")
+          ),
+          box(
+            title = "Model Logs ",
+            width = 12,
+            solidHeader = TRUE,
+            collapsible = TRUE,
+            status = "success",
+            verbatimTextOutput("model_log_output")
           )
         ),
         tabPanel(
