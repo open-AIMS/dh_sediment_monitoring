@@ -213,15 +213,17 @@ fit_models <- function(data) {
   status::status_try_catch(
   {
     nm_l <- paste0(data_path, "modelled/log_models.log")
-    sink(nm_l, append = FALSE)
+    total_number_of_models <- nrow(data)
     data |>
+      mutate(i = 1:n()) |> 
       mutate(fit = pmap(
-        .l = list(data, form, priors, template),
+        .l = list(data, form, priors, template, i),
         .f = ~ {
           l_d <- ..1
           l_f <- ..2
           l_p <- ..3
           l_t <- ..4
+          i <- ..5
           nm <- paste0(
             data_path, "modelled/",
             sanitise_filename(paste0(
@@ -230,7 +232,11 @@ fit_models <- function(data) {
               unique(l_d$Value_type)
             ))
           )
-          cat(paste0(unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"))
+          cat(paste0(
+            i, "/", total_number_of_models, " (",
+            sprintf("% 3.1f%%", 100 * (i / total_number_of_models)), "): ",
+            unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
+          ), file = nm_l, append = TRUE)
           if (!file.exists(paste0(nm, ".rds"))) {
             ## Determine whether the model should be re-run (based on
             ## whether it already exists or not)
@@ -268,9 +274,9 @@ fit_models <- function(data) {
               ##   append = TRUE
               ## )
             )
-            cat("\t - model successfully fit\n")
+            cat("\t - model successfully fit\n", file = nm_l, append = TRUE)
           } else {
-            cat("\t - loaded from previous run\n")
+            cat("\t - loaded from previous run\n", file = nm_l, append = TRUE)
           }
           ## sink(
           ##   file = paste0(data_path, "temp.log"),
@@ -287,7 +293,6 @@ fit_models <- function(data) {
         },
         .progress = TRUE
       ))
-    sink()
   },
   stage_ = 5,
   name_ = "Fit models",
