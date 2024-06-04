@@ -243,13 +243,14 @@ fit_models <- function(data) {
 
             ## utils::capture.output(
             ##   mod <- invisible(update(mod_template,
-            mod <- update(mod_template,
-              form = l_f,
-              newdata = l_d,
+            ## mod <- update(mod_template,
+            mod <- brm(orm = l_f,
+              ## newdata = l_d,
+              data = l_d,
               prior = l_p,
               sample_prior = "yes",
               ## recompile = recom,
-              recompile = FALSE,
+              ## recompile = FALSE,
               iter = 5000,
               chains = 3, cores = 3,
               warmup = 1000,
