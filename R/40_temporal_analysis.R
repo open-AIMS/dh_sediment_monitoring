@@ -229,6 +229,7 @@ fit_models <- function(data) {
             ))
           )
           print(nm)
+          nm_l <- paste0(data_path, "modelled/aaa.log")
           mod_template <- readRDS(l_t)
           recom <- !formula_same(mod_template$form, l_f)
           print(paste("Recom: ", recom))
@@ -238,7 +239,7 @@ fit_models <- function(data) {
             ## ## Determine whether the model should be recompiled
             ## mod_template <- readRDS(l_t)
             ## recom <- !formula_same(mod_template$form, l_f)
-            capture.output(
+            utils::capture.output(
               mod <- invisible(update(mod_template,
                 form = l_f,
                 newdata = l_d,
@@ -258,7 +259,9 @@ fit_models <- function(data) {
                 seed = 123,
                 control = list(adapt_delta = 0.95)
               ) |> suppressWarnings() |> suppressMessages()),
-              file = nullfile()
+              ## file = nullfile(),
+              file = nm_l,
+              append = TRUE
             )
           }
           ## sink(
