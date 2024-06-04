@@ -230,7 +230,7 @@ fit_models <- function(data) {
               unique(l_d$Value_type)
             ))
           )
-          print(nm)
+          cat(paste0(unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")\n"))
           if (!file.exists(paste0(nm, ".rds"))) {
             ## Determine whether the model should be re-run (based on
             ## whether it already exists or not)
