@@ -473,6 +473,7 @@ validate_models <- function(data) {
           unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
         ), file = nm_l, append = TRUE)
         if (!file.exists(nm)) {
+          print("here")
           ## mod <- readRDS(mod_s)
           ## capture.output(
           ##   resids <- make_brms_dharma_res(mod, integerResponse = FALSE) |>
@@ -490,6 +491,8 @@ validate_models <- function(data) {
           ## df <- data.frame(nm = nm) |> bind_cols(v)
           ## saveRDS(df, file = nm2)
           cat("\t - model successfully validated\n", file = nm_l, append = TRUE)
+          v <- NULL
+          
         } else {
           df <- readRDS(file = nm2)
           v <- df |> dplyr::select(-nm)
