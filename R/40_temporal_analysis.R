@@ -267,8 +267,8 @@ fit_models <- function(data) {
               ##   file = nm_l,
               ##   append = TRUE
               ## )
-            cat("\t - model successfully fit\n")
             )
+            cat("\t - model successfully fit\n")
           } else {
             cat("\t - loaded from previous run\n")
           }
