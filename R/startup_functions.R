@@ -225,8 +225,8 @@ prepare_paths <- function() {
 
     if (file.exists(model_log_file)) {
       unlink(model_log_file)
-      file.create(model_log_file)
     }
+    file.create(model_log_file)
     },
   stage_ = 1,
   name_ = "Prepare paths",
