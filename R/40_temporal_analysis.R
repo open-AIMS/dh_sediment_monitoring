@@ -47,10 +47,14 @@ module_temporal <- function() {
   ## Validate models
   data <- validate_models(data)
   saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+  cat("====================================\n",
+    file = paste0(data_path, "modelled/log_models.log"), append = TRUE
+  )
 
   ## Compile all the effects
   data <- compile_baseline_vs_year_comparisons(data)
   saveRDS(data, file = paste0(data_path, "modelled/data_all.RData"))
+
   ## Pairwise tests
   ## Partial plots
   ## Caterpillar plots
