@@ -36,6 +36,10 @@ module_temporal <- function() {
 
   data <- data |> fit_models()
   saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+  cat("====================================\n",
+    file = paste0(data_path, "modelled/log_models.log"), append = TRUE
+  )
+
   
   ##data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
   ## data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
@@ -43,6 +47,7 @@ module_temporal <- function() {
   ## Validate models
   data <- validate_models(data)
   saveRDS(data, file = paste0(data_path, "modelled/data.RData"))
+
   ## Compile all the effects
   data <- compile_baseline_vs_year_comparisons(data)
   saveRDS(data, file = paste0(data_path, "modelled/data_all.RData"))
@@ -446,14 +451,25 @@ baseline_and_years_summ <- function(dat, mod) {
 validate_models <- function(data) {
   status::status_try_catch(
   {
+    nm_l <- paste0(data_path, "modelled/log_models.log")
+    total_number_of_models <- nrow(data)
   data |>
-    mutate(valid = map(
-      .x = fit,
+      mutate(i = 1:n()) |> 
+    mutate(valid = pmap(
+      .l = list(fit, data, i),
       .f = ~ {
-        nm <- str_replace(.x, "mod_", "resids_")
-        nm2 <- str_replace(.x, "mod_", "valid_")
+        mod_s <- ..1
+        l_d <- ..2
+        i <- ..3
+        nm <- str_replace(mod_s, "mod_", "resids_")
+        nm2 <- str_replace(mod_s, "mod_", "valid_")
+        cat(paste0(
+          i, "/", total_number_of_models, " (",
+          sprintf("% 3.1f%%", 100 * (i / total_number_of_models)), "): ",
+          unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
+        ), file = nm_l, append = TRUE)
         if (!file.exists(nm)) {
-          mod <- readRDS(.x)
+          mod <- readRDS(mod_s)
           capture.output(
             resids <- make_brms_dharma_res(mod, integerResponse = FALSE) |>
               suppressWarnings() |>
@@ -469,9 +485,11 @@ validate_models <- function(data) {
           )
           df <- data.frame(nm = nm) |> bind_cols(v)
           saveRDS(df, file = nm2)
+          cat("\t - model successfully validated\n", file = nm_l, append = TRUE)
         } else {
           df <- readRDS(file = nm2)
           v <- df |> dplyr::select(-nm)
+          cat("\t - model previously validated\n", file = nm_l, append = TRUE)
         }
         cbind(nm, v)
       },
