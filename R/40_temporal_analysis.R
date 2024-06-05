@@ -483,16 +483,15 @@ validate_models <- function(data) {
               file = nullfile()
             )
             saveRDS(resids, file = nm)
-            ## capture.output(
-            ##   v <- validate_model(resids) |>
-            ##     suppressWarnings() |>
-            ##     suppressMessages(),
-            ##   file = nullfile()
-            ## )
-            ## df <- data.frame(nm = nm) |> bind_cols(v)
-            ## saveRDS(df, file = nm2)
+            capture.output(
+              v <- validate_model(resids) |>
+                suppressWarnings() |>
+                suppressMessages(),
+              file = nullfile()
+            )
+            df <- data.frame(nm = nm) |> bind_cols(v)
+            saveRDS(df, file = nm2)
             cat("\t - model successfully validated\n", file = nm_l, append = TRUE)
-            v <- NULL
           } else {
             df <- readRDS(file = nm2)
             v <- df |> dplyr::select(-nm)
