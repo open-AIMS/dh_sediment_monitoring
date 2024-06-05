@@ -52,8 +52,8 @@ module_temporal <- function() {
   )
 
   ## Compile all the effects
-  #data <- compile_baseline_vs_year_comparisons(data)
-  #saveRDS(data, file = paste0(data_path, "modelled/data_all.RData"))
+  data <- compile_baseline_vs_year_comparisons(data)
+  saveRDS(data, file = paste0(data_path, "modelled/data_all.RData"))
 
   ## Pairwise tests
   ## Partial plots
@@ -545,21 +545,33 @@ change_palette <- c('#d73027','#fc8d59','#fee08b','#ffffff','#d9ef8b','#91cf60',
 compile_baseline_vs_year_comparisons <- function(data) {
   status::status_try_catch(
   {
+    nm_l <- paste0(data_path, "modelled/log_models.log")
+    total_number_of_models <- nrow(data)
     data |>
       dplyr::select(-any_of(c("form", "priors", "template"))) |>
-      mutate(effects = map2(
-        .x = data,
-        .y = fit,
+      mutate(i = 1:n()) |> 
+      mutate(effects = pmap(
+        .l = list(data, fit, i),
         .f = ~ {
-          nm <- str_replace(.y, "mod_", "effects_")
+          l_d <- ..1
+          fit <- ..2
+          i <- ..3
+          nm <- str_replace(fit, "mod_", "effects_")
+          cat(paste0(
+            i, "/", total_number_of_models, " (",
+            sprintf("% 3.1f%%", 100 * (i / total_number_of_models)), "): ",
+            unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
+          ), file = nm_l, append = TRUE)
           if (!file.exists(nm)) {
             comp <- NULL
-            if (length(unique(.x$Baseline)) > 1) {
-              comp <- compare_baseline_vs_years_summ(.x, readRDS(file = .y))
+            if (length(unique(l_d$Baseline)) > 1) {
+              comp <- compare_baseline_vs_years_summ(l_d, readRDS(file = fit))
               saveRDS(comp, file = nm)
             }
+            cat("\t - model successfully compared\n", file = nm_l, append = TRUE)
           } else {
             comp <- readRDS(file = nm)
+            cat("\t - model previously compared\n", file = nm_l, append = TRUE)
           }
           comp
         },
