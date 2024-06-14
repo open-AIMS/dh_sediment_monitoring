@@ -10,6 +10,12 @@ analysis_tab <- tabItem(
         uiOutput("analysis_overview")
         ),
       tabPanel(
+        title = "Model diagnostics",
+        icon = icon("database"),
+        id = "analysis_diagnostics_tab",
+        uiOutput("analysis_diagnostics")
+      ),
+      tabPanel(
         title = "Analyses details",
         icon = icon("database"),
         id = "analysis_details_tab",
