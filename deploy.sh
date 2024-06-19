@@ -22,8 +22,8 @@ docker pull $container_image
 # docker run -it --rm -p $container_port:$container_port --entrypoint /bin/bash $container_image
 # docker run -it --rm -p $container_port:$container_port --entrypoint /bin/bash -v "$(pwd)"/input:/home/project/input $container_image
 # docker run -it --rm -p $container_port:$container_port --entrypoint R -v "$(pwd)"/input:/home/project/input $container_image
-# docker run -it --rm -p $container_port:$container_port -v "$(pwd)"/input:/home/project/input $container_image
-docker run -it --rm --user 1000:1000 -p $container_port:$container_port -v "$(pwd)":/home/project $container_image
+docker run -it --rm -p $container_port:$container_port -v "$(pwd)"/input:/home/project/input $container_image
+# docker run -it --rm --user 1000:1000 -p $container_port:$container_port -v "$(pwd)":/home/project $container_image
 
 # # Get the host IP address
 # host_ip=$(hostname -I | awk '{print $1}')

@@ -19,10 +19,11 @@ effect_years_value <- reactiveVal()                   ## data pool of all combin
 effect_scale_value <- reactiveVal()
 sub_data <- reactiveVal()                             ## data pool from which to select dropdowns
 
+
 observeEvent(input$runAnalysisCode, {
   status::display_status_terminal()
   prom <- promises::future_promise({
-    ## module_temporal()
+    module_temporal()
     readRDS(file = paste0(data_path, "modelled/data_all.RData")) |>
       mutate(Normalised_against = ifelse(is.na(Normalised_against), "", Normalised_against))
   })
