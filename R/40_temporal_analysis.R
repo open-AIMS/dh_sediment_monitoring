@@ -82,10 +82,12 @@ module_temporal <- function() {
   ## Put these all together into a single tibble
   data_all <-
     data_site |>
+    mutate(fit = map(.x = fit, .f = ~.x)) |> 
     mutate(scale = "site") |>
-    dplyr::select(-fit) |>
+    ## dplyr::select(-fit) |>
     bind_rows(
       data_zone |>
+        ## unnest(fit) |> 
         mutate(scale = "zone") ## |>
         ## dplyr::select(-fit)
     )
@@ -138,7 +140,8 @@ prepare_data <- function(data) {
       filter(!is.na(Values)) |>
       mutate(cYear = factor(Year)) |>
       mutate(cens_lor = ifelse(lor_flag, "left", "none")) |>
-      nest(data = everything(), .by = c(ZoneName, Type, Var, Value_type)) |>
+      ## nest(data = everything(), .by = c(ZoneName, Type, Var, Value_type)) |>
+      nest(data = everything(), .by = c(ZoneName, Type, Var, Value_type, Normalised_against)) |>
       mutate(data = map(
         .x = data,
         .f = ~ .x |> droplevels()
@@ -195,7 +198,7 @@ prepare_priors <- function(data) {
             summarise(across(lValues, list(mean = mean, median = median, sd = sd, mad = mad)))
           int_mu <- round(dat_sum[1, "lValues_mean"], 2)[[1]]
           int_sd <- max(1, round(dat_sum[1, "lValues_sd"], 2)[[1]])
-          sd_sd <- max(1, round(mean(dat_sum[, "lValues_sd"][[1]]), 2)[[1]])
+          sd_sd <- max(1, round(mean(dat_sum[, "lValues_sd"][[1]]), 2)[[1]], na.rm = TRUE)
           priors <- prior_string(paste0("student_t(3, ", int_mu, ", ", int_sd, ")"), class = "Intercept") +
             prior_string(paste0("student_t(3, 0, ", sd_sd, ")"), class = "sd", coef = "Intercept", group = "Site") +
             prior(gamma(0.01, 0.01), class = "shape")
@@ -274,19 +277,25 @@ fit_models <- function(data) {
           l_p <- ..3
           l_t <- ..4
           i <- ..5
+          norm_against_str <- ifelse(!is.na(unique(l_d$Normalised_against)),
+                paste0("____", unique(l_d$Normalised_against)), ""
+              )
           nm <- paste0(
             data_path, "modelled/",
             sanitise_filename(paste0(
               "mod_", unique(l_d$ZoneName), "__",
               unique(l_d$Var), "___",
-              unique(l_d$Value_type)
+              unique(l_d$Value_type),
+             norm_against_str 
             ))
           )
           print(nm)
           cat(paste0(
             i, "/", total_number_of_models, " (",
             sprintf("% 3.1f%%", 100 * (i / total_number_of_models)), "): ",
-            unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
+            unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type),
+            ifelse(norm_against_str != "", paste0(": ", norm_against_str), ""),
+            ")"
           ), file = nm_l, append = TRUE)
           if (!file.exists(paste0(nm, ".rds"))) {
             ## Determine whether the model should be re-run (based on
@@ -321,7 +330,7 @@ fit_models <- function(data) {
               control = list(adapt_delta = 0.95)
               ##   ) |> suppressWarnings() |> suppressMessages()),
               ##   ## file = nullfile(),
-              ##   file = nm_l,
+              ##  cd file = nm_l,
               ##   append = TRUE
               ## )
             )
@@ -359,7 +368,7 @@ sanitise_filename <- function(nm) {
 
 
 ## Get the "data" field from the filtered nested data set
-get_filtered_data <- function(data, scale, zone, var, type) {
+get_filtered_data <- function(data, scale, zone, var, type, normalised_against) {
   Scale <- scale
   if (Scale == "site") {
     data |>
@@ -367,7 +376,8 @@ get_filtered_data <- function(data, scale, zone, var, type) {
         scale == Scale,
         Site == zone,
         Var == var,
-        Value_type == type
+        Value_type == type,
+        Normalised_against == normalised_against
       ) |>
       droplevels()
   } else {
@@ -376,7 +386,8 @@ get_filtered_data <- function(data, scale, zone, var, type) {
         scale == Scale,
         ZoneName == zone,
         Var == var,
-        Value_type == type
+        Value_type == type,
+        Normalised_against == normalised_against
       ) |>
       droplevels()##  |>
     ## pull(data) |>
@@ -385,18 +396,37 @@ get_filtered_data <- function(data, scale, zone, var, type) {
 }
 
 ## Get the "fit" field from the filtered nested data set and use it to read in the model
-get_filtered_model <- function(data, zone, var, type) {
+get_filtered_model <- function(data, zone, var, type, normalised_against) {
   fit <- data |>
     filter(
       scale == "zone",
       ZoneName == zone,
       Var == var,
-      Value_type == type
+      Value_type == type,
+      Normalised_against == normalised_against
     ) |>
     droplevels() |>
     pull(fit) |>
     _[[1]]
   readRDS(file = fit)
+}
+get_filtered_model_details <- function(data, sscale, zone, var, type, normalised_against) {
+  fit <- data |>
+    filter(
+      scale == sscale,
+      ZoneName == zone,
+      Var == var,
+      Value_type == type,
+      Normalised_against == normalised_against
+    ) |>
+    droplevels() |>
+    pull(fit) |>
+    _[[1]]
+  if (!is.null(fit)) {
+    return(readRDS(file = fit))
+  } else {
+    return(NULL)
+  }
 }
 
 make_contrasts_baseline_vs_years <- function(dat) {
@@ -612,16 +642,20 @@ validate_models <- function(data) {
 }
 
 validate_model <- function(resids) {
-        ## resids <- make_brms_dharma_res(mod, integerResponse = FALSE)
-        ## KS test
-        ks <- validate_model_ks(resids)
-        ## Dispersion
-        ds <- validate_model_dispersion(resids)
-        ## Quantiles
-        q <- validate_model_quantiles(resids)
-        ## Outliers
-        o <- validate_model_outliers(resids)
-        data.frame(ks = ks, ds = ds, q = q, o = o)
+  if (is.null(resids)) {
+    o <- q <- ds <- ks <- NA
+  } else {
+    ## resids <- make_brms_dharma_res(mod, integerResponse = FALSE)
+    ## KS test
+    ks <- validate_model_ks(resids)
+    ## Dispersion
+    ds <- validate_model_dispersion(resids)
+    ## Quantiles
+    q <- validate_model_quantiles(resids)
+    ## Outliers
+    o <- validate_model_outliers(resids)
+  }
+  data.frame(ks = ks, ds = ds, q = q, o = o)
 }
 
 validate_model_ks <- function(resids) {
@@ -652,9 +686,9 @@ compile_posteriors <- function(data, scale) {
         unnest(c(data, fit)) |>
         dplyr::select(
           Type, Baseline, ZoneName, RegionName, Area,
-          Site, Var, Value_type, cYear, fit
+          Site, Var, Value_type, Normalised_against, cYear, fit
         ) |>
-        nest(data = everything(), .by = c(ZoneName, Site, Type, Var, Value_type, fit))
+        nest(data = everything(), .by = c(ZoneName, Site, Type, Var, Value_type, Normalised_against, fit))
       lst <- compile_posteriors_site(data)
     } else {
       lst <- compile_posteriors_zone(data)
@@ -666,7 +700,8 @@ compile_posteriors_zone <- function(data, scale = "zone") {
   {
     nm_l <- paste0(data_path, "modelled/log_models.log")
     total_number_of_models <- nrow(data)
-    data |>
+    data <-
+      data |>
       dplyr::select(-any_of(c("form", "priors", "template"))) |>
       mutate(i = 1:n()) |> 
       mutate(effects = pmap(
@@ -686,38 +721,26 @@ compile_posteriors_zone <- function(data, scale = "zone") {
             unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
           ), file = nm_l, append = TRUE)
           lst <- get_all_posteriors(fit, l_d, nm, nm_l, scale)
-          ## if (!file.exists(nm)) {
-          ##   comp <- NULL
-          ##   if (length(unique(l_d$Baseline)) > 1) {
-          ##     l_d <- l_d |>
-          ##       mutate(scale = scale) |>
-          ##       distinct()
-          ##     ## Calculate cellmeans posteriors
-          ##     nm_cm <- str_replace(nm, "effects_", "cellmeans_posteriors_")
-          ##     pstrs_cm <- get_cellmeans_posteriors(l_d, readRDS(file = fit))
-          ##     saveRDS(pstrs_cm, file = nm_cm)
-          ##     ## Calculate contrast posteriors
-          ##     nm_e <- str_replace(nm, "effects_", "effects_posteriors_")
-          ##     pstrs_e <- get_effects_posteriors(l_d, readRDS(file = fit))
-          ##     saveRDS(pstrs_e, file = nm_e)
-          ##     ## Summarise contrasts
-          ##     comp <- get_effects_summ(pstrs_e)
-          ##     saveRDS(comp, file = nm)
-          ##   }
-          ##   cat("\t - model successfully compared\n", file = nm_l, append = TRUE)
-          ## } else {
-          ##   comp <- readRDS(file = nm)
-          ##   cat("\t - model previously compared\n", file = nm_l, append = TRUE)
-          ## }
-          ## comp
           lst
         },
         .progress = TRUE
       )) 
+    data
   },
   stage_ = 5,
   name_ = "Compile zone results",
   item_ = "compile_zone_results"
+  )
+}
+
+collect_results_zone <- function(data) {
+  status::status_try_catch(
+  {
+    collect_results_all(data)
+  },
+  stage_ = 5,
+  name_ = "Collect zone results",
+  item_ = "collect_zone_results"
   )
 }
 
@@ -726,6 +749,7 @@ compile_posteriors_site <- function(data, scale = "site") {
   {
     nm_l <- paste0(data_path, "modelled/log_models.log")
     total_number_of_models <- nrow(data)
+    data <- 
     data |>
       dplyr::select(-any_of(c("form", "priors", "template"))) |>
       mutate(i = 1:n()) |> 
@@ -776,6 +800,7 @@ compile_posteriors_site <- function(data, scale = "site") {
         },
         .progress = TRUE
       )) 
+    data
   },
   stage_ = 5,
   name_ = "Compile site results",
@@ -931,52 +956,8 @@ get_effects_posteriors <- function(dat, mod) {
       group_by(contrast)
   }
   eff |> mutate(scale = unique(dat$scale)) |> 
-    group_by(scale, add = TRUE)
+    group_by(scale, .add = TRUE)
 }
-
-## compile_baseline_vs_year_comparisons <- function(data) {
-##   status::status_try_catch(
-##   {
-##     nm_l <- paste0(data_path, "modelled/log_models.log")
-##     total_number_of_models <- nrow(data)
-##     data |>
-##       dplyr::select(-any_of(c("form", "priors", "template"))) |>
-##       mutate(i = 1:n()) |> 
-##       mutate(effects = pmap(
-##         .l = list(data, fit, i),
-##         .f = ~ {
-##           l_d <- ..1
-##           fit <- ..2
-##           i <- ..3
-##           nm <- str_replace(fit, "mod_", "effects_")
-##           cat(paste0(
-##             i, "/", total_number_of_models, " (",
-##             sprintf("% 3.1f%%", 100 * (i / total_number_of_models)), "): ",
-##             unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
-##           ), file = nm_l, append = TRUE)
-##           if (!file.exists(nm)) {
-##             comp <- NULL
-##             if (length(unique(l_d$Baseline)) > 1) {
-##               l_d <- l_d |> mutate(scale = "zone")
-##               comp <- compare_baseline_vs_years_summ(l_d, readRDS(file = fit), nm)
-##               saveRDS(comp, file = nm)
-##             }
-##             cat("\t - model successfully compared\n", file = nm_l, append = TRUE)
-##           } else {
-##             comp <- readRDS(file = nm)
-##             cat("\t - model previously compared\n", file = nm_l, append = TRUE)
-##           }
-##           comp
-##         },
-##         .progress = TRUE
-##       )) 
-##   },
-##   stage_ = 5,
-##   name_ = "Compile results",
-##   item_ = "compile_results"
-##   )
-## }
-
 
 
 site_compare_baseline_vs_years_posteriors <- function(dat, mod) {
@@ -1025,60 +1006,6 @@ derive_change <- function(summ) {
     )) 
 }
 
-## site_compile_baseline_vs_year_comparisons <- function(data) {
-##   status::status_try_catch(
-##   {
-##     ## Re-nest with respect to site
-##     data_site <- data |>
-##       dplyr::select(data, fit) |>
-##       unnest(c(data, fit)) |>
-##       dplyr::select(
-##         Type, Baseline, ZoneName, RegionName, Area,
-##         Site, Var, Value_type, cYear, fit
-##       ) |>
-##       nest(data = everything(), .by = c(ZoneName, Site, Type, Var, Value_type, fit))
-##     nm_l <- paste0(data_path, "modelled/log_models.log")
-##     total_number_of_models <- nrow(data_site)
-##     data_site |>
-##       dplyr::select(-any_of(c("form", "priors", "template"))) |>
-##       mutate(i = 1:n()) |> 
-##       mutate(effects = pmap(
-##         .l = list(data, fit, i),
-##         .f = ~ {
-##           l_d <- distinct(..1)
-##           fit <- ..2
-##           i <- ..3
-##           nm <- str_replace(
-##             fit, "mod_",
-##             paste0("site_effects_", unique(l_d$Site), "_")
-##           )
-##           cat(paste0(
-##             i, "/", total_number_of_models, " (",
-##             sprintf("% 3.1f%%", 100 * (i / total_number_of_models)), "): ",
-##             unique(l_d$Site), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
-##           ), file = nm_l, append = TRUE)
-##           if (!file.exists(nm)) {
-##             comp <- NULL
-##             if (length(unique(l_d$Baseline)) > 1) {
-##               comp <- site_compare_baseline_vs_years_summ(l_d, readRDS(file = fit))
-##               saveRDS(comp, file = nm)
-##             }
-##             cat("\t - model successfully compared\n", file = nm_l, append = TRUE)
-##           } else {
-##             comp <- readRDS(file = nm)
-##             cat("\t - model previously compared\n", file = nm_l, append = TRUE)
-##           }
-##           comp
-##         },
-##         .progress = TRUE
-##       )) 
-##   },
-##   stage_ = 5,
-##   name_ = "Compile site results",
-##   item_ = "compile_site_results"
-##   )
-## }
-
 collect_results <- function(data, scale) {
   if (scale == "zone") {
     collect_results_zone(data)
@@ -1087,16 +1014,6 @@ collect_results <- function(data, scale) {
   }
 }
 
-collect_results_zone <- function(data) {
-  status::status_try_catch(
-  {
-    collect_results_all(data)
-  },
-  stage_ = 5,
-  name_ = "Collect zone results",
-  item_ = "Collect_zone_results"
-  )
-}
 
 collect_results_site <- function(data) {
   status::status_try_catch(
@@ -1105,7 +1022,7 @@ collect_results_site <- function(data) {
   },
   stage_ = 5,
   name_ = "Collect site results",
-  item_ = "Collect_site_results"
+  item_ = "collect_site_results"
   )
 }
 

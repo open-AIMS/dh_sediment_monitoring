@@ -1,14 +1,18 @@
+
 output$analysis_overview <- renderUI({
   req(analysis_data())
   data <- analysis_data()
-  effect_years <- data |>
-    ## dplyr::select(ZoneName, Type, Var, Value_type, effects) |>
-    dplyr::select(ZoneName, Type, Var, Value_type, summ_e) |>
-    unnest(c(summ_e)) |>
-    dplyr::select(scale, ZoneName, Type, Var, Value_type, year, contrast) |>
-    distinct()
-  effect_years_value(effect_years)
-  
+  ## effect_years <- data |>
+  ##   ## dplyr::select(ZoneName, Type, Var, Value_type, effects) |>
+  ##   dplyr::select(ZoneName, Type, Var, Value_type, Normalised_against, summ_e) |>
+  ##   unnest(c(summ_e)) |>
+  ##   dplyr::select(scale, ZoneName, Type, Var, Value_type, Normalised_against, year, contrast) |>
+  ##   distinct()
+  ## effect_years_value(effect_years)
+  ## req(effect_years_value())
+  req(initial_levels_pool_overview())
+  req(levels_pool_overview())
+  print(initial_levels_pool_overview())
     fluidPage(
       fluidRow(
         box(
@@ -47,29 +51,40 @@ output$analysis_overview <- renderUI({
         box(
           class = "analysis-zone-box",
           status = "info",
-          width = 7,
+          width = 12,
           solidHeader = TRUE,
           # column(width = 3, selectInput("analysis_overview_zone_selector", "Select Site:", choices = unique(data$ZoneName))),
           column(width = 2,
-            selectInput("analysis_overview_scale_type_selector", "Select scale:",
-              choices = unique(data$scale), selected = "zone")),
+            selectInput("analysis_overview_scale_type_selector", "Scale:",
+              choices = unique(levels_pool_overview()$scale),
+              selected = initial_levels_pool_overview()$scale)),
           column(width = 2,
-            selectInput("analysis_overview_value_type_selector", "Select value type:",
-              choices = unique(data$Value_type), selected = "Standardised")),
-          column(width = 3,
-            selectInput("analysis_overview_type_selector", "Select variable type:",
-              choices = c("All", unique(data$Type)), selected = "hydrocarbons")),
+            selectInput("analysis_overview_type_selector", "Variable type:",
+              ## choices = c("All", unique(levels_pool_overview()$Type)),
+              ## selected = "All")),
+              choices = unique(levels_pool_overview()$Type),
+              selected = initial_levels_pool_overview()$Type)),
+          column(width = 2,
+            selectInput("analysis_overview_value_type_selector", "Value type:",
+              choices = unique(levels_pool_overview()$Value_type),
+              selected = initial_levels_pool_overview()$Value_type)),
+          column(width = 2,
+            selectInput("analysis_overview_normalised_type_selector", "Normalisation type:",
+              choices = unique(levels_pool_overview()$Normalised_against),
+              selected = initial_levels_pool_overview()$Normalised_against)),
           column(
             width = 2,
-            selectInput("analysis_overview_year_selector", "Select focal year:",
-              choices = unique(effect_years$year), selected = max(effect_years$year)
+            selectInput("analysis_overview_year_selector", "Focal year:",
+              choices = unique(levels_pool_overview()$year),
+              selected = initial_levels_pool_overview()$year
             )
           ),
           column(
-            width = 3,
+            width = 2,
             selectInput("analysis_overview_contrast_selector", "Select contrast:",
-              choices = unique(effect_years$contrast),
-              selected = str_subset(unique(effect_years$contrast), paste0(max(effect_years$year), ".*Baseline"))
+              choices = unique(levels_pool_overview()$contrast),
+              selected = initial_levels_pool_overview()$contrast
+              ## selected = str_subset(unique(levels_pool_overview()$contrast), paste0(max(levels_pool_overview()$year), ".*Baseline"))
             )
           )
         ),
@@ -96,9 +111,10 @@ output$analysis_overview <- renderUI({
                 ## dplyr::select(-data, -fit) |>
                 ## unnest(c(effects)) |>
                 unnest(c(summ_e)) |>
-                dplyr::select(scale, ZoneName, Type, Var, Value_type, contrast, change, year) |>
+                dplyr::select(scale, ZoneName, Type, Var, Value_type, contrast, Normalised_against, change, year) |>
                 filter(
                   scale == input$analysis_overview_scale_type_selector,
+                  Normalised_against == input$analysis_overview_normalised_type_selector,
                   Value_type == input$analysis_overview_value_type_selector,
                   year == input$analysis_overview_year_selector,
                   contrast == input$analysis_overview_contrast_selector
@@ -130,9 +146,10 @@ output$analysis_overview <- renderUI({
                 ## dplyr::select(-data, -fit) |>
                 ## unnest(c(effects)) |>
                 unnest(c(summ_e)) |>
-                dplyr::select(scale, Site, Type, Var, Value_type, contrast, change, year) |>
+                dplyr::select(scale, Site, Type, Var, Value_type, contrast, Normalised_against, change, year) |>
                 filter(
                   scale == input$analysis_overview_scale_type_selector,
+                  Normalised_against == input$analysis_overview_normalised_type_selector,
                   Value_type == input$analysis_overview_value_type_selector,
                   year == input$analysis_overview_year_selector,
                   contrast == input$analysis_overview_contrast_selector
@@ -164,5 +181,97 @@ output$analysis_overview <- renderUI({
         )
       )
     )
+})
+
+#If it is supplied (e.g. from the input value) use it, otherwise,
+#get from first combination....
+select_dat <- function(focal) {
+ req(levels_pool_overview())
+ current_scale <- input$analysis_overview_scale_type_selector
+ current_type <- input$analysis_overview_type_selector
+ current_value_type <- input$analysis_overview_value_type_selector
+ current_normalised_against <- input$analysis_overview_normalised_type_selector
+ current_year <- input$analysis_overview_year_selector
+ if (focal == "type") {
+   temp <-
+     levels_pool_overview() |>
+     filter(scale == current_scale) |>
+     pull(Type) |>
+     unique()
+ }
+ if (focal == "value_type") {
+   temp <-
+     levels_pool_overview() |>
+     filter(scale == current_scale) |>
+     filter(Type == current_type) |>
+     pull(Value_type) |>
+     unique()
+ }
+ if (focal == "normalised_against") {
+   temp <-
+     levels_pool_overview() |>
+     filter(scale == current_scale) |>
+     filter(Type == current_type) |>
+     filter(Value_type == current_value_type) |>
+     pull(Normalised_against) |>
+     unique()
+ }
+ if (focal == "year") {
+   temp <-
+     levels_pool_overview() |>
+     filter(scale == current_scale) |>
+     filter(Type == current_type) |>
+     filter(Value_type == current_value_type) |>
+     filter(Normalised_against == current_normalised_against) |>
+     arrange(desc(year)) |> 
+     pull(year) |>
+     unique()
+ }
+ if (focal == "contrast") {
+   temp <-
+     levels_pool_overview() |>
+     filter(scale == current_scale) |>
+     filter(Type == current_type) |>
+     filter(Value_type == current_value_type) |>
+     filter(Normalised_against == current_normalised_against) |>
+     filter(year == current_year) |>
+     pull(contrast) |>
+     unique() 
+     temp <- unique(c(temp[str_which(temp, "Baseline")], temp))
+ }
+  temp
+}
+
+
+observeEvent(input$analysis_overview_scale_type_selector, {
+  updateSelectInput(session,
+    "analysis_overview_type_selector",
+    choices = select_dat(focal = "type")
+  )
+})
+
+observeEvent(input$analysis_overview_type_selector, {
+  updateSelectInput(session,
+    "analysis_overview_value_type_selector",
+    choices = select_dat(focal = "value_type")
+  )
+})
+observeEvent(input$analysis_overview_value_type_selector, {
+  updateSelectInput(session,
+    "analysis_overview_normalised_type_selector",
+    choices = select_dat(focal = "normalised_against")
+  )
+})
+observeEvent(input$analysis_overview_normalised_type_selector, {
+  updateSelectInput(session,
+    "analysis_overview_year_selector",
+    choices = select_dat(focal = "year")
+  )
+})
+observeEvent(input$analysis_overview_year_selector, {
+  updateSelectInput(session,
+    "analysis_overview_contrast_selector",
+    choices = select_dat(focal = "contrast")
+  )
 })
 

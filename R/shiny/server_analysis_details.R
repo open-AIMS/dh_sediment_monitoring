@@ -4,7 +4,7 @@ source("05_stats_functions.R")
 ## dat_value <- reactiveVal()
 ## variable_value <- reactiveVal()
 ## effect_years_value <- reactiveVal()
-effect_scale_value <- reactiveVal()
+## effect_scale_value <- reactiveVal()
 
 output$analysis_main <- renderUI({
   req(analysis_data())
@@ -20,8 +20,9 @@ output$analysis_main <- renderUI({
         solidHeader = TRUE,
         column(width = 3, selectInput("analysis_main_scale_selector", "Select Scale:", choices = unique(data$scale), selected = "zone")),
         column(width = 3, selectInput("analysis_main_zone_selector", "Select Site:", choices = unique(data$ZoneName))),
-        column(width = 3, selectInput("analysis_main_var_selector", "Select value type:", choices = unique(data$Var))),
-        column(width = 3, selectInput("analysis_main_value_type_selector", "Select value type:", choices = unique(data$Value_type)))
+        column(width = 3, selectInput("analysis_main_var_selector", "Select var type:", choices = unique(data$Var))),
+        column(width = 3, selectInput("analysis_main_value_type_selector", "Select value type:", choices = unique(data$Value_type))),
+        column(width = 3, selectInput("analysis_main_normalised_against_selector", "Normalisation type:", choices = unique(data$Normalised_against)))
       ),
       box(
         title = "General instructions",
@@ -59,61 +60,186 @@ output$analysis_main <- renderUI({
   )
 })
 
-observeEvent(
-  c(
-    input$analysis_main_scale_selector,
-    input$analysis_main_zone_selector,
-    input$analysis_main_var_selector,
-    input$analysis_main_value_type_selector
-  ),
-  {
+
+#If it is supplied (e.g. from the input value) use it, otherwise,
+#get from first combination....
+select_detail <- function(focal) {
+ req(levels_pool_details())
+ current_scale <- input$analysis_main_scale_selector
+ current_zone <- input$analysis_main_zone_selector
+ current_var <- input$analysis_main_var_selector
+ current_value_type <- input$analysis_main_value_type_selector
+ if (focal == "zone") {
+   temp <-
+     levels_pool_details() |>
+     filter(scale == current_scale) |>
+     pull(ZoneName) |>
+     unique()
+ }
+ if (focal == "var") {
+   temp <-
+     levels_pool_details() |>
+     filter(scale == current_scale) |>
+     filter(ZoneName == current_zone) |>
+     pull(Var) |>
+     unique()
+ }
+ if (focal == "value_type") {
+   temp <-
+     levels_pool_details() |>
+     filter(scale == current_scale) |>
+     filter(ZoneName == current_zone) |>
+     filter(Var == current_var) |> 
+     pull(Value_type) |>
+     unique()
+ }
+ if (focal == "normalised_against") {
+   temp <-
+     levels_pool_details() |>
+     filter(scale == current_scale) |>
+     filter(ZoneName == current_zone) |>
+     filter(Var == current_var) |> 
+     filter(Value_type == current_value_type) |> 
+     pull(Normalised_against) |>
+     unique()
+ }
+ if (focal == "end") {
+   temp <-
+     levels_pool_details() |>
+     filter(scale == current_scale) |>
+     filter(ZoneName == current_zone) |>
+     filter(Var == current_var) |> 
+     filter(Value_type == current_value_type) |> 
+     filter(Normalised_against == current_normalised_against) |> 
+     pull(Normalised_against) |>
+     unique()
+ }
+  temp
+}
+
+
+select_details_data <- function() {
     req(analysis_data())
-    data <- analysis_data()
-    
-    variable <- input$analysis_main_var_selector
-    variable_value(variable)
+    data <- analysis_data() |>
+      mutate(ZoneName = ifelse(scale == "zone", ZoneName, Site))
+    ## print(data |>
+    ##   filter(scale == input$analysis_main_scale_selector) |>
+    ##   filter(ZoneName == input$analysis_main_zone_selector) |>
+    ##   filter(Var == input$analysis_main_var_selector) |>
+    ##   filter(Value_type == input$analysis_main_value_type_selector) |>
+    ##   filter(Normalised_against == input$analysis_main_normalised_against_selector))
+    ## mod <- get_filtered_model_details(data,
+    ##   sscale = input$analysis_main_scale_selector,
+    ##   zone = input$analysis_main_zone_selector,
+    ##   var = input$analysis_main_var_selector,
+    ##   type = input$analysis_main_value_type_selector,
+    ##   normalised_against = input$analysis_main_normalised_against_selector
+    ## )
+
     dat <- get_filtered_data(data,
       scale = input$analysis_main_scale_selector,
       zone = input$analysis_main_zone_selector,
       var = input$analysis_main_var_selector,
-      type = input$analysis_main_value_type_selector
+      type = input$analysis_main_value_type_selector,
+      normalised_against = input$analysis_main_normalised_against_selector
     )
-    ## print("this")
-    ## print(dat)
-    ## print("that")
-    dat_value(dat)
-  }
-)
+    dat
+}
+
 
 observeEvent(input$analysis_main_scale_selector, {
-    req(analysis_data())
-    data <- analysis_data()
-  ## print(data)
-  current_site <- input$analysis_main_zone_selector
-  if (input$analysis_main_scale_selector == "site") {
-    site <- data |>
-      filter(scale == input$analysis_main_scale_selector) |>
-      pull(Site) |>
-      unique()
-    
-  } else {
-    site <- data |>
-      filter(scale == input$analysis_main_scale_selector) |>
-      pull(ZoneName) |>
-      unique()
-  }
-  ## print(site)
-  if (!current_site %in% site) {
-    updateSelectInput(session,
-      "analysis_main_zone_selector",
-      choices = site
-    )
-  }
+  updateSelectInput(session,
+    "analysis_main_zone_selector",
+    choices = select_detail(focal = "zone")
+  )
+  if (input$analysis_main_zone_selector %in% select_detail(focal = "zone"))
+    mod_value_details(select_details_data())
 })
 
-observeEvent(input$analysis_main_effectsscale_selector, {
-    effect_scale_value(input$analysis_main_effectsscale_selector)
+observeEvent(input$analysis_main_zone_selector, {
+  updateSelectInput(session,
+    "analysis_main_var_selector",
+    choices = select_detail(focal = "var")
+  )
+  if (input$analysis_main_var_selector %in% select_detail(focal = "var"))
+    mod_value_details(select_details_data())
 })
+
+observeEvent(input$analysis_main_var_selector, {
+  updateSelectInput(session,
+    "analysis_main_value_type_selector",
+    choices = select_detail(focal = "value_type")
+  )
+  if (input$analysis_main_value_type_selector %in% select_detail(focal = "value_type"))
+    mod_value_details(select_details_data())
+})
+observeEvent(input$analysis_main_value_type_selector, {
+  updateSelectInput(session,
+    "analysis_main_normalised_against_selector",
+    choices = select_detail(focal = "normalised_against")
+  )
+  if (input$analysis_main_normalised_against_selector %in% select_detail(focal = "normalised_against"))
+    mod_value_details(select_details_data())
+})
+observeEvent(input$analysis_main_normalised_against_selector, {
+    mod_value_details(select_details_data())
+})
+
+## observeEvent(
+##   c(
+##     input$analysis_main_scale_selector,
+##     input$analysis_main_zone_selector,
+##     input$analysis_main_var_selector,
+##     input$analysis_main_value_type_selector
+##   ),
+##   {
+##     req(analysis_data())
+##     data <- analysis_data()
+    
+##     variable <- input$analysis_main_var_selector
+##     variable_value(variable)
+##     dat <- get_filtered_data(data,
+##       scale = input$analysis_main_scale_selector,
+##       zone = input$analysis_main_zone_selector,
+##       var = input$analysis_main_var_selector,
+##       type = input$analysis_main_value_type_selector
+##     )
+##     ## print("this")
+##     ## print(dat)
+##     ## print("that")
+##     dat_value(dat)
+##   }
+## )
+
+## observeEvent(input$analysis_main_scale_selector, {
+##     req(analysis_data())
+##     data <- analysis_data()
+##   ## print(data)
+##   current_site <- input$analysis_main_zone_selector
+##   if (input$analysis_main_scale_selector == "site") {
+##     site <- data |>
+##       filter(scale == input$analysis_main_scale_selector) |>
+##       pull(Site) |>
+##       unique()
+    
+##   } else {
+##     site <- data |>
+##       filter(scale == input$analysis_main_scale_selector) |>
+##       pull(ZoneName) |>
+##       unique()
+##   }
+##   ## print(site)
+##   if (!current_site %in% site) {
+##     updateSelectInput(session,
+##       "analysis_main_zone_selector",
+##       choices = site
+##     )
+##   }
+## })
+
+## observeEvent(input$analysis_main_effectsscale_selector, {
+##     effect_scale_value(input$analysis_main_effectsscale_selector)
+## })
 
 output$analysis_trends <- renderUI({
   fluidPage(
@@ -139,16 +265,18 @@ output$analysis_trends <- renderUI({
   )
 })
 
-## observeEvent(input$analysis_main_effectsscale_selector,
-##   {
-##     req(effect_scale_value)
-##     effect_scale_value(input$analysis_main_effectsscale_selector)
-##   }
-## )
+## ## observeEvent(input$analysis_main_effectsscale_selector,
+## ##   {
+## ##     req(effect_scale_value)
+## ##     effect_scale_value(input$analysis_main_effectsscale_selector)
+## ##   }
+## ## )
 
 output[["analysis-cellmeans-table"]] <- reactable::renderReactable({
-  req(dat_value())
-  dat <- dat_value()
+  ## req(dat_value())
+  ## dat <- dat_value()
+  req(mod_value_details())
+  dat <- mod_value_details()
   d <- dat$nm_cm |>
     _[[1]]
   if (!is.null(d)) {
@@ -166,12 +294,47 @@ output[["analysis-cellmeans-table"]] <- reactable::renderReactable({
   }
 })
 
+select_details_model <- function() {
+    req(analysis_data())
+    data <- analysis_data() |>
+      mutate(ZoneName = ifelse(scale == "zone", ZoneName, Site))
+    print("select_details_model")
+    print(data)
+    print(data |> filter(scale == input$analysis_main_scale_selector) |>
+      filter(ZoneName == input$analysis_main_zone_selector) |>
+      filter(Var == input$analysis_main_var_selector) |>
+      filter(Value_type == input$analysis_main_value_type_selector) |>
+      filter(Normalised_against == input$analysis_main_normalised_against_selector) |> _[["fit"]])
+    mod <- get_filtered_model_details(data,
+      sscale = input$analysis_main_scale_selector,
+      zone = input$analysis_main_zone_selector,
+      var = input$analysis_main_var_selector,
+      type = input$analysis_main_value_type_selector,
+      normalised_against = input$analysis_main_normalised_against_selector
+    )
+ mod 
+}
+
+
+
+
 output[["analysis-trend-plot"]] <- renderPlot({
-  req(dat_value())
-  req(effect_scale_value())
+  req(mod_value_details())
+  dat <- mod_value_details()
+  
+  dt <- select_details_model()$data 
+  if (input$analysis_main_scale_selector == "site") {
+    dt <- dt |>
+      filter(Site == input$analysis_main_zone_selector) |>
+      droplevels()
+  }
+  print(dt)
+
+  ## req(dat_value())
+  ## req(effect_scale_value())
   ## print("make plot")
   ## print(effect_scale_value())
-  dat <- dat_value()
+  ## dat <- dat_value()
   d <- dat$nm_cm |>
     _[[1]]
   if (!is.null(d)) {
@@ -189,6 +352,24 @@ output[["analysis-trend-plot"]] <- renderPlot({
     }
     d |>
       ggplot(aes(x = Year, y = median)) +
+      geom_point(
+        data = dt,
+        aes(
+          y = Values,
+          x = as.numeric(as.character(cYear)),
+          group = Site
+        ),
+        color = "gray"
+      ) +
+      geom_line(
+        data = dt,
+        aes(
+          y = Values,
+          x = as.numeric(as.character(cYear)),
+          group = Site
+        ),
+        color = "gray"
+      ) +
       geom_line(linetype = "dashed") +
       geom_pointrange(aes(ymin = lower, ymax = upper, colour = Baseline)) +
       ylab(label = input$analysis_main_var_selector) +
@@ -224,8 +405,10 @@ output$analysis_effects <- renderUI({
 })
 
 output[["analysis-effects-table"]] <- reactable::renderReactable({
-  req(dat_value())
-  dat <- dat_value()
+  ## req(dat_value())
+  ## dat <- dat_value()
+  req(mod_value_details())
+  dat <- mod_value_details()
   d <- dat$summ_e |>
     _[[1]]
   if (!is.null(d)) {
@@ -252,8 +435,10 @@ output[["analysis-effects-table"]] <- reactable::renderReactable({
 
 output$download_effects_data <- downloadHandler(
   filename = function() {
-    req(dat_value())
-    dat <- dat_value()
+    ## req(dat_value())
+    ## dat <- dat_value()
+  req(mod_value_details())
+  dat <- mod_value_details()
     dat$nm_e |>
       _[[1]] |>
       basename() |>
@@ -274,8 +459,10 @@ output$download_effects_data <- downloadHandler(
 )
 
 output[["analysis-effects-plot"]] <- renderPlot({
-  req(dat_value())
-  dat <- dat_value()
+  ## req(dat_value())
+  ## dat <- dat_value()
+  req(mod_value_details())
+  dat <- mod_value_details()
   d <- dat$nm_e |>
     _[[1]]
   if (!is.null(d)) {

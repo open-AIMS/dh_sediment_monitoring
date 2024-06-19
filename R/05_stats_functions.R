@@ -4,38 +4,45 @@ make_brms_dharma_res <- function(brms_model, seed = 10, ...) {
     options(mc.cores = 1)
     on.exit(options(mc.cores = parallel::detectCores()))
     response <- brms::standata(brms_model)$Y
-    ndraws <- nrow(as_draws_df(brms_model))
-    manual_preds_brms <- matrix(0, ndraws, nrow(brms_model$data))
-    random_terms <- insight::find_random(
-                                 brms_model, split_nested = TRUE, flatten = TRUE
-                             )
-                                        # for this to have a similar output to `glmmTMB`'s default, we need to
-                                        #   create new levels in the hierarchical variables, so then we can
-                                        #   use `allow_new_levels = TRUE` and `sample_new_levels = "gaussian"` in
-                                        #   `brms::posterior_epred`. This is equivalent to
-                                        #   `simulateResiduals(lme4_model, use.u = FALSE)`. See details in
-                                        #   `lme4:::simulate.merMod` and `glmmTMB:::simulate.glmmTMB`
-    new_data <- brms_model$data |>
+    if (length(response) < 3) {  ## residuals diagnostics from < 3 obs are of little value and not permitted in DHARMa
+      return(NULL)
+    } else {
+      ndraws <- nrow(as_draws_df(brms_model))
+      manual_preds_brms <- matrix(0, ndraws, nrow(brms_model$data))
+      random_terms <- insight::find_random(
+        brms_model,
+        split_nested = TRUE, flatten = TRUE
+      )
+      # for this to have a similar output to `glmmTMB`'s default, we need to
+      #   create new levels in the hierarchical variables, so then we can
+      #   use `allow_new_levels = TRUE` and `sample_new_levels = "gaussian"` in
+      #   `brms::posterior_epred`. This is equivalent to
+      #   `simulateResiduals(lme4_model, use.u = FALSE)`. See details in
+      #   `lme4:::simulate.merMod` and `glmmTMB:::simulate.glmmTMB`
+      new_data <- brms_model$data |>
         dplyr::mutate(across(
-                   all_of(random_terms), \(x)paste0("NEW_", x) |> as.factor()
-               ))
-    set.seed(seed)
-    brms_sims <- brms::posterior_predict(
-                           brms_model, re_formula = NULL, newdata = new_data,
-                           allow_new_levels = TRUE, sample_new_levels = "gaussian"
-                       ) |>
+          all_of(random_terms), \(x)paste0("NEW_", x) |> as.factor()
+        ))
+      set.seed(seed)
+      brms_sims <- brms::posterior_predict(
+        brms_model,
+        re_formula = NULL, newdata = new_data,
+        allow_new_levels = TRUE, sample_new_levels = "gaussian"
+      ) |>
         t()
-    fitted_median_brms <- apply(brms_sims, 1, median)
-    ## fitted_median_brms <- apply(
-    ##     t(brms::posterior_epred(brms_model, ndraws = ndraws, re.form = NA)),
-    ##     1,
-    ##     mean)
-    DHARMa::createDHARMa(
-                simulatedResponse = brms_sims,
-                observedResponse = response,
-                fittedPredictedResponse = fitted_median_brms,
-                ...
-            )
+      fitted_median_brms <- apply(brms_sims, 1, median)
+      ## fitted_median_brms <- apply(
+      ##     t(brms::posterior_epred(brms_model, ndraws = ndraws, re.form = NA)),
+      ##     1,
+      ##     mean)
+      dd <- DHARMa::createDHARMa(
+        simulatedResponse = brms_sims,
+        observedResponse = response,
+        fittedPredictedResponse = fitted_median_brms,
+        ...
+      )
+      return(dd)
+    }
 }
 
 
