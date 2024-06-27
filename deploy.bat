@@ -25,9 +25,9 @@ if %docker_running%==false (echo ERROR: Docker doesnt appear to be running on yo
 :: === GET INPUT DATA FOLDER PATH FROM USER VIA GUI ===
 :: Method from here: https://www.reddit.com/r/Batch/comments/gk6ucx/open_folder_selection_dialog/
 set msg="Please select the input data folder."
-set "psCommand="(new-object -COM 'Shell.Application').BrowseForFolder(0,'Please select input data folder',0,0).self.path""
+set "psCommand="(new-object -COM 'Shell.Application').BrowseForFolder(0,'Please select project folder',0,0).self.path""
 for /f "usebackq delims=" %%I in (`powershell %psCommand%`) do set "input_folder=%%I"
-echo Input data folder: %input_folder%
+echo Project folder: %input_folder%
 
 :: === GET DOCKER IMAGE FROM GITHUB ===
 echo Pulling docker image from github - this might take a while...
