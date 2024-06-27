@@ -208,7 +208,7 @@ The task of installing and running the app is performed via a single
 **deploy script** (`deploy.bat` on Windows or `deploy.sh` on
 Linux/MacOSX/wsl). For this to work properly, the deploy script should
 be placed in a folder along with a folder (called `input`) that
-containsthe input datasets (in excel format). This structure is
+contains the input datasets (in excel format). This structure is
 illustrated below for Windows.
 
 ```
@@ -227,6 +227,56 @@ are excel files that adhere to the structure outlined in
 @sec-data-requirements.
 :::
 
+To set up the above struture:
+
+1. create a new folder on your computer in a location of your choice
+   that you are likely to remember and easily locate (e.g. on the
+   desktop). Whilst the name of the folder is not important, it is
+   recommended that it be named after the project (e.g.
+   `darwin_harbour_sediment_monitoring`).
+
+2. download the deploy script from the projects github repository
+
+   a. go to the projects github repository
+      (<https://github.com/open-AIMS/dh_sediment_monitoring.git>) in a
+      browser
+
+   b. click on either the `deploy.bat` (Windows) or 'deploy.sh`
+      (Linux/MacOSX/wsl).
+
+      ![](resources/github_deploy_script.png)
+
+   c. click on the download button and select the project folder as
+      the location to download the file to. If the file is
+      automatically downloaded to a downloads folder, move the file to
+      the project folder.
+
+      ![](resources/github_deploy_script2.png)
+
+3. within the project folder, create a folder called `inputs` and
+   place all the appropriate data sets into this `inputs` folder
+
+To run the app, navigate inside of the project folder and run
+(typically double click) on the deploy script. Upon doing so, you will
+be presented with a directory selection window that is prompting for
+the path of the project folder. Navigate to and select the project
+folder before clicking the "OK" button. Shortly thereafter, the
+application will appear in a browser tab.
+
+::: {.callout-note collapse=true}
+## More specific information about the `deploy.bat` script
+The `deploy.bat` script performs the following:
+
+1. defines paths to the project repository and local project folder
+2. checks if `docker` is installed and available from the command line
+   for the current user
+3. checks if `docker` is running
+4. query the user for the location of the project folder
+5. determine whether there are any updates to the `docker` image and
+   if so pull them down
+6. run the `docker` container
+7. open the shiny app in a browser
+:::
 
 
 # The Darwin Harbour Sediment Monitoring Program Analysis App
