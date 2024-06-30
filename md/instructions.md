@@ -26,6 +26,10 @@ sidebar menu on the left side of the screen):
 3. a **Data** page providing overviews of data in various stages
 4. an **Exploratory Data Analysis** page providing graphical data
    summaries
+5. an **Analysis** page providing information about the statistical
+   models and their outputs
+6. a **Manual** page that displays the online manual for the
+   application
 
 Each page will also contain instructions to help guide you through
 using or interpreting the information. In some cases, this will take

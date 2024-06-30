@@ -30,8 +30,9 @@ module_load_data <- function() {
         saveRDS(spatial, file = paste0(data_path, "primary/spatial.RData"))
 
         ## make the spatial lookup
-        spatial_lookup <- make_spatial_lookup()
+        spatial_lookup <- make_spatial_lookup(spatial)
         saveRDS(spatial_lookup, file = paste0(data_path, "primary/spatial_lookup.RData"))
+        saveRDS(spatial_lookup, file = paste0(data_path, "processed/spatial_lookup.RData"))
 }
  
 ##' Read in data (xlsx files) from the nominated input_path folder
@@ -590,7 +591,7 @@ make_spatial_data <- function() {
 ##' @title Make spatial lookup 
 ##' @return spatial_lookup a tibble 
 ##' @author Murray Logan
-make_spatial_lookup <- function() {
+make_spatial_lookup <- function(spatial) {
   status::status_try_catch(
   {
     spatial_lookup <- tibble::tribble(
@@ -605,6 +606,24 @@ make_spatial_lookup <- function() {
       3,       "Outer",     1,     "Outer Harbour",    "Outer",
       3,       "Outer",     2,     "Shoal Bay",        "Outer",
       )
+    ## take the actual spatial object and calcualte the Zone level areas
+    Zone_areas <- spatial |>
+      group_by(Zone_Name) |>
+      mutate(area = st_area(geometry)) |>
+      st_drop_geometry() |>
+      dplyr::select(Zone_Name, area) |>
+      group_by(Zone_Name) |>
+      summarise(area = as.numeric(sum(area))) |>
+      mutate(Zone_weights = area / sum(area))
+    spatial_lookup <- spatial_lookup |>
+      left_join(Zone_areas, by = c("ZoneName" = "Zone_Name")) |>
+      dplyr::select(Region, RegionName, Zone, ZoneName, Area, area, Zone_weights) |>
+      group_by(Area) |>
+      mutate(Area_area = sum(area, na.rm = TRUE)) |>
+      ungroup() |>
+      mutate(Area_weights = Area_area / sum(Area_area))
+    
+ 
     saveRDS(spatial_lookup, file = paste0(data_path, "processed/spatial_lookup.RData"))
     spatial_lookup
   } ,

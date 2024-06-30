@@ -12,6 +12,8 @@ module_temporal <- function() {
   ## status or log file
   print(status_file)
   print(log_file)
+
+  spatial_lookup <- readRDS(file = paste0(data_path, "processed/spatial_lookup.RData"))
   
   status::status_set_stage(stage = 5, title = "Temporal analysis")
   ## plan(multisession, workers = 4)
@@ -19,11 +21,16 @@ module_temporal <- function() {
   ## Retrieve the data from primary data
   data <- retrieve_processed_data(file = paste0(data_path, "processed/data.RData"))
 
-  spatial_lookup <-
+  site_lookup <-
     data |>
     dplyr::select(Area, RegionName, ZoneName, Site) |>
     distinct()
-  saveRDS(spatial_lookup, file = paste0(data_path, "processed/spatial_lookup.RData"))
+  saveRDS(site_lookup, file = paste0(data_path, "processed/site_lookup.RData"))
+  ## spatial_lookup <-
+  ##   data |>
+  ##   dplyr::select(Area, RegionName, ZoneName, Site) |>
+  ##   distinct()
+  ## saveRDS(spatial_lookup, file = paste0(data_path, "processed/spatial_lookup.RData"))
 
   ## Prepare data - add the replicate and duplicate stuff in to prepare_data()
   data <- data |> prepare_data()
@@ -57,18 +64,20 @@ module_temporal <- function() {
     file = paste0(data_path, "modelled/log_models.log"), append = TRUE
   )
 
+  
   ## Zone level posteriors and contrasts
   data_zone <- compile_posteriors(data, scale = "zone")
-  data_zone <- collect_results(data_zone, scale = "zone")
+  data_zone <- collect_results(data_zone, scale = "zone")  ## basically unnests
   saveRDS(data_zone, file = paste0(data_path, "modelled/data_zone.RData"))
   data_zone <-
     data_zone |>
     mutate(scale = "zone") |>
     dplyr::select(-data, -effects) |>
     full_join(spatial_lookup |>
-      dplyr::select(-Site) |>
+                dplyr::select(Area, RegionName, ZoneName) |> 
       distinct())
   
+
   ## Site level effects
   data_site <- compile_posteriors(data, scale = "site")
   data_site <- collect_results(data_site, scale = "site")
@@ -77,8 +86,17 @@ module_temporal <- function() {
     data_site |>
     mutate(scale = "site") |>
     dplyr::select(-data, -effects) |> 
-    full_join(spatial_lookup)
+    full_join(site_lookup)
 
+  ## Area level effects
+  data_area <- compile_posteriors(data_zone, scale = "area")
+  data_area <- collect_results(data_area, scale = "area")
+  saveRDS(data_area, file = paste0(data_path, "modelled/data_area.RData"))
+  data_area <-
+    data_area |>
+    mutate(scale = "area") |>
+    dplyr::select(-data, -effects)
+  
   ## Put these all together into a single tibble
   data_all <-
     data_site |>
@@ -89,6 +107,12 @@ module_temporal <- function() {
       data_zone |>
         ## unnest(fit) |> 
         mutate(scale = "zone") ## |>
+        ## dplyr::select(-fit)
+    ) |> 
+    bind_rows(
+      data_area |>
+        ## unnest(fit) |> 
+        mutate(scale = "area") ## |>
         ## dplyr::select(-fit)
     )
   saveRDS(data_all,
@@ -688,13 +712,245 @@ compile_posteriors <- function(data, scale) {
           Type, Baseline, ZoneName, RegionName, Area,
           Site, Var, Value_type, Normalised_against, cYear, fit
         ) |>
-        nest(data = everything(), .by = c(ZoneName, Site, Type, Var, Value_type, Normalised_against, fit))
+        nest(
+          data = everything(),
+          .by = c(ZoneName, Site, Type, Var, Value_type, Normalised_against, fit)
+        )
       lst <- compile_posteriors_site(data)
-    } else {
+    } else if (scale == "zone"){
       lst <- compile_posteriors_zone(data)
+    } else if (scale == "area") {
+      ## spatial_lookup <- readRDS(file = paste0(data_path, "processed/spatial_lookup.RData"))
+      ## data <- data |> 
+      ##   left_join(spatial_lookup |>
+      ##     dplyr::select(ZoneName, Zone_weights) |>
+      ##     distinct())
+      lst <- compile_posteriors_area(data)
     }
    lst
 }
+
+
+get_cellmeans_posteriors_area <- function(cm) {
+  cm |> 
+    dplyr::select(ZoneName, cm) |>
+    unnest(c(cm)) |>
+    left_join(spatial_lookup |>
+                filter(ZoneName %in% .x$ZoneName) |>
+                dplyr::select(ZoneName, Area, Zone_weights)) |>
+    dplyr::select(contrast, .value, .draw, Baseline, Zone_weights) |>
+    group_by(contrast, .draw, Baseline) |>
+    summarise(.value = sum(.value * Zone_weights)) |>
+    ungroup(.draw) |> 
+    as_draws() |> 
+    group_by(contrast, Baseline) 
+}
+get_effects_posteriors_area <- function(e) {
+  e |> 
+    dplyr::select(ZoneName, e) |>
+    unnest(c(e)) |>
+    left_join(spatial_lookup |>
+                filter(ZoneName %in% .x$ZoneName) |>
+                dplyr::select(ZoneName, Area, Zone_weights)) |>
+    dplyr::select(contrast, .value, .draw, Zone_weights) |>
+    group_by(contrast, .draw) |>
+    summarise(.value = sum(.value * Zone_weights)) |>
+    ungroup(.draw) |> 
+    as_draws() |> 
+    group_by(contrast) 
+}
+get_all_posteriors_area <- function(.x) {
+  nm_cm <- unique(.x$nm_cm)[1]
+  ZN <- unique(.x$ZoneName)[1]
+  new_nm_cm <- str_replace(nm_cm, ZN, unique(.x$Area))
+  nm_e <- unique(.x$nm_e)[1]
+  new_nm_e <- str_replace(nm_e, ZN, unique(.x$Area))
+
+  if (is.na(nm_cm) | is.null(nm_cm)) {
+    return(list(nm_cm = NULL, nm_e = NULL, comp = NULL))
+  }
+  ## retrieve cellmeans posteriors for each ZoneName
+  all_cm <- .x |>
+    mutate(cm = map(.x = nm_cm, .f = ~ {
+      nm_cm <- .x
+      if (is.null(nm_cm) | is.na(nm_cm) | nm_cm == "") {
+        return(NULL)
+      }
+      cm <- readRDS(file = nm_cm)
+      cm
+    }))
+
+  ## Calculate cellmeans posteriors
+  pstrs_cm <- get_cellmeans_posteriors_area(all_cm)
+  saveRDS(pstrs_cm, file = new_nm_cm)
+
+  ## Calculate effects posteriors
+  all_e <- .x |>
+    mutate(e = map(.x = nm_e, .f = ~ {
+      nm_e <- .x
+      if (is.null(nm_e) | is.na(nm_e) | nm_e == "") {
+        return(NULL)
+      }
+      e <- readRDS(file = nm_e)
+      e
+    }))
+  pstrs_e <- get_effects_posteriors_area(all_e)
+  saveRDS(pstrs_e, file = new_nm_e)
+
+  ## Summarise contrasts
+  new_nm <- str_replace(new_nm_e, "posteriors_", "")
+  comp <- get_effects_summ(pstrs_e)
+  saveRDS(comp, file = new_nm)
+
+  list(nm_cm = nm_cm, nm_e = nm_e, comp = comp)
+}
+compile_posteriors_area <- function(data, scale = "area") {
+  status::status_try_catch(
+  {
+    nm_l <- paste0(data_path, "modelled/log_models.log")
+
+    spatial_lookup <- readRDS(file = paste0(data_path, "processed/spatial_lookup.RData"))
+    data <-
+      data |>
+      dplyr::select(-fit, -valid, -scale, -summ_e) |>
+      unnest(c(nm_cm, nm_e), keep_empty = TRUE) |>
+      nest( ## nest by Area
+        data = c(nm_cm, nm_e, ZoneName, Area),
+        .by = c(Area, Type, Var, Value_type, Normalised_against)
+      ) |>
+      mutate(effects = map(
+        .x = data,
+        .f = ~ {
+         lst <- get_all_posteriors_area(.x)
+         lst
+        }
+      ))
+    data
+  },
+  stage_ = 5,
+  name_ = "Compile area results",
+  item_ = "compile_area_results"
+  )
+}
+
+compile_posteriors_area_old <- function(data, scale = "zone") {
+  status::status_try_catch(
+  {
+    nm_l <- paste0(data_path, "modelled/log_models.log")
+    ## cell means
+    cm <-
+      data |>
+      mutate(cm = map(
+        .x = nm_cm,
+        .f = ~ {
+          if (is.null(.x)) {
+            return(NULL)
+          }
+          eff <- readRDS(file = .x)
+          return(eff)
+        }
+      )) |>
+      mutate(nm_cm = pmap(
+        .l = list(nm_cm, ZoneName, Area),
+        .f = ~ {
+          str_replace(..1, ..2, ..3)
+        }
+      )) |>
+      dplyr::select(-scale) |>
+      unnest(c(cm, nm_cm)) |>
+      nest(data = everything(), .by = c(Area, Type, Var, Value_type, Normalised_against)) |>
+      mutate(nm_cm = map(
+        .x = data,
+        .f = ~ {
+          nm_cm <- unique(.x$nm_cm)
+          cm <- .x |>
+            group_by(Type, Var, Value_type, Normalised_against, Area, contrast, .draw) |>
+            summarise(.value = .value * Zone_weights)
+          save(cm, file = nm_cm)
+          nm_cm
+        }
+      )) |>
+      dplyr::select(-data)
+
+    ## effects
+    e <-
+      data |>
+      mutate(eff = map(
+        .x = nm_e,
+        .f = ~ {
+          if (is.null(.x)) {
+            return(NULL)
+          }
+          eff <- readRDS(file = .x)
+          return(eff)
+        }
+      )) |>
+      mutate(nm_e = pmap(
+        .l = list(nm_e, ZoneName, Area),
+        .f = ~ {
+          str_replace(..1, ..2, ..3)
+        }
+      )) |>
+      dplyr::select(-scale) |> 
+      unnest(c(eff, nm_e)) |>
+      nest(data = everything(), .by = c(Area, Type, Var, Value_type, Normalised_against, nm_e)) |>
+      mutate(eff = map(
+        .x = data,
+        .f = ~ {
+          eff <- .x |>
+            group_by(Type, Var, Value_type, Normalised_against, Area, contrast, .draw) |>
+            summarise(.value = .value * Zone_weights) |>
+            suppressMessages() |> suppressWarnings()
+          eff |>
+            ungroup() |>
+            dplyr::select(-Type, -Var, -Value_type, -Normalised_against, -Area) |>
+            as_draws() |>
+            group_by(contrast)
+        }
+      )) |> 
+      mutate(nm_e = map2(
+        .x = eff,
+        .y = nm_e,
+        .f = ~ {
+          nm_e <- unique(.y)
+          if (is.null(nm_e)) {
+            return(NULL)
+          }
+          save(.x, file = nm_e)
+          nm_e
+        }
+      )) |> 
+      mutate(summ_e = map(
+        .x = eff,
+        .f = ~ {
+          .x |> tidybayes::summarise_draws(
+            median,
+            HDInterval::hdi,
+            Pl = ~ mean(.x < 1),
+            Pg = ~ mean(.x > 1)
+          ) |> 
+            mutate(change = case_when(
+              Pl > 0.95 ~ 7,
+              Pl > 0.9 ~ 6,
+              Pl > 0.85 ~ 5,
+              Pg > 0.95 ~ 1,
+              Pg > 0.9 ~ 2,
+              Pg > 0.85 ~ 3,
+              .default = 4
+            )) |> 
+            mutate(year = str_extract(contrast, "[0-9]{4}")) |> 
+            dplyr::select(-variable)
+        }
+      )) |> 
+      dplyr::select(-data, -eff)
+
+  },
+  stage_ = 5,
+  name_ = "Compile area results",
+  item_ = "compile_area_results"
+  )
+}
+
 compile_posteriors_zone <- function(data, scale = "zone") {
   status::status_try_catch(
   {
@@ -1009,11 +1265,24 @@ derive_change <- function(summ) {
 collect_results <- function(data, scale) {
   if (scale == "zone") {
     collect_results_zone(data)
-  } else {
+  } else if (scale == "site") {
     collect_results_site(data)
+  } else {
+    collect_results_area(data)
+    
   }
 }
 
+collect_results_area <- function(data) {
+  status::status_try_catch(
+  {
+    collect_results_all(data)
+  },
+  stage_ = 5,
+  name_ = "Collect area results",
+  item_ = "collect_area_results"
+  )
+}
 
 collect_results_site <- function(data) {
   status::status_try_catch(
@@ -1033,6 +1302,9 @@ collect_results_all <- function(data) {
     mutate(nm_cm = map(
       .x = effects,
       .f = ~ {
+        if (is.null(.x$nm_cm)) {
+          return(NULL)
+        }
         if (file.exists(.x$nm_cm)) {
           ## pstr_cm <- readRDS(.x$nm_cm)
           nm_cm <- .x$nm_cm
@@ -1046,6 +1318,9 @@ collect_results_all <- function(data) {
     mutate(nm_e = map(
       .x = effects,
       .f = ~ {
+        if (is.null(.x$nm_e)) {
+          return(NULL)
+        }
         if (file.exists(.x$nm_e)) {
           ## pstr_cm <- readRDS(.x$nm_e)
           nm_cm <- .x$nm_e

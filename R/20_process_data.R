@@ -353,6 +353,15 @@ incorporate_spatial_data <- function(df, spatial) {
     spatial <- readRDS(file = paste0(data_path, "primary/spatial.RData"))
     spatial_lookup <- readRDS(file = paste0(data_path, "primary/spatial_lookup.RData"))
 
+    spatial_areas <- spatial |>
+      group_by(Zone_Name) |>
+      mutate(area = st_area(geometry)) |>
+      st_drop_geometry() |>
+      dplyr::select(Zone_Name, area) |>
+      group_by(Zone_Name) |>
+      summarise(area = sum(area))
+    saveRDS(spatial_areas, file = paste0(data_path, "processed/spatial_areas.RData"))
+
     df |>
       filter(!is.na(Longitude), !is.na(Latitude)) |>
       sf::st_as_sf(coords = c("Longitude", "Latitude"),
