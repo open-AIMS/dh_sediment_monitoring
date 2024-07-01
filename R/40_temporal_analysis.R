@@ -1122,7 +1122,8 @@ get_cellmeans_posteriors_area <- function(cm) {
     summarise(.value = sum(.value * Zone_weights)) |>
     ungroup(.draw) |>
     as_draws() |>
-    group_by(contrast, Baseline) |>
+    mutate(scale = "area") |> 
+    group_by(contrast, Baseline, scale) |>
     suppressMessages() |> suppressWarnings()
 }
 
@@ -1140,7 +1141,8 @@ get_effects_posteriors_area <- function(e) {
     summarise(.value = sum(.value * Zone_weights)) |>
     ungroup(.draw) |> 
     as_draws() |> 
-    group_by(contrast) |> 
+    mutate(scale = "area") |> 
+    group_by(contrast, scale) |> 
     suppressMessages() |> suppressWarnings()
 }
 
