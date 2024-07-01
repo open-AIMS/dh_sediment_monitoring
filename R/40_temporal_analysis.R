@@ -1110,34 +1110,38 @@ collect_results_all <- function(data) {
 
 get_cellmeans_posteriors_area <- function(cm) {
   spatial_lookup <- readRDS(file = paste0(data_path, "processed/spatial_lookup.RData"))
-  cm |> 
+  zones <- unique(cm$ZoneName)
+  cm |>
     dplyr::select(ZoneName, cm) |>
     unnest(c(cm)) |>
     left_join(spatial_lookup |>
-                filter(ZoneName %in% .x$ZoneName) |>
-                dplyr::select(ZoneName, Area, Zone_weights)) |>
+      filter(ZoneName %in% zones) |>
+      dplyr::select(ZoneName, Area, Zone_weights)) |>
     dplyr::select(contrast, .value, .draw, Baseline, Zone_weights) |>
     group_by(contrast, .draw, Baseline) |>
     summarise(.value = sum(.value * Zone_weights)) |>
-    ungroup(.draw) |> 
-    as_draws() |> 
-    group_by(contrast, Baseline) 
+    ungroup(.draw) |>
+    as_draws() |>
+    group_by(contrast, Baseline) |>
+    suppressMessages() |> suppressWarnings()
 }
 
 get_effects_posteriors_area <- function(e) {
   spatial_lookup <- readRDS(file = paste0(data_path, "processed/spatial_lookup.RData"))
+  zones <- unique(e$ZoneName)
   e |> 
     dplyr::select(ZoneName, e) |>
     unnest(c(e)) |>
     left_join(spatial_lookup |>
-                filter(ZoneName %in% .x$ZoneName) |>
+                filter(ZoneName %in% zones) |>
                 dplyr::select(ZoneName, Area, Zone_weights)) |>
     dplyr::select(contrast, .value, .draw, Zone_weights) |>
     group_by(contrast, .draw) |>
     summarise(.value = sum(.value * Zone_weights)) |>
     ungroup(.draw) |> 
     as_draws() |> 
-    group_by(contrast) 
+    group_by(contrast) |> 
+    suppressMessages() |> suppressWarnings()
 }
 
 get_all_posteriors_area <- function(.x) {
