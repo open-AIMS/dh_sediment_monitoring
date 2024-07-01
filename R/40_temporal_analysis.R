@@ -1054,16 +1054,6 @@ collect_results <- function(data, scale) {
   }
 }
 
-collect_results_area <- function(data) {
-  status::status_try_catch(
-  {
-    collect_results_all(data)
-  },
-  stage_ = 5,
-  name_ = "Collect area results",
-  item_ = "collect_area_results"
-  )
-}
 
 collect_results_site <- function(data) {
   status::status_try_catch(
@@ -1132,6 +1122,7 @@ get_cellmeans_posteriors_area <- function(cm) {
     as_draws() |> 
     group_by(contrast, Baseline) 
 }
+
 get_effects_posteriors_area <- function(e) {
   e |> 
     dplyr::select(ZoneName, e) |>
@@ -1146,6 +1137,7 @@ get_effects_posteriors_area <- function(e) {
     as_draws() |> 
     group_by(contrast) 
 }
+
 get_all_posteriors_area <- function(.x) {
   nm_cm <- unique(.x$nm_cm)[1]
   ZN <- unique(.x$ZoneName)[1]
@@ -1191,6 +1183,7 @@ get_all_posteriors_area <- function(.x) {
 
   list(nm_cm = nm_cm, nm_e = nm_e, comp = comp)
 }
+
 compile_posteriors_area <- function(data, scale = "area") {
   status::status_try_catch(
   {
@@ -1217,5 +1210,16 @@ compile_posteriors_area <- function(data, scale = "area") {
   stage_ = 5,
   name_ = "Compile area results",
   item_ = "compile_area_results"
+  )
+}
+
+collect_results_area <- function(data) {
+  status::status_try_catch(
+  {
+    collect_results_all(data)
+  },
+  stage_ = 5,
+  name_ = "Collect area results",
+  item_ = "collect_area_results"
   )
 }
