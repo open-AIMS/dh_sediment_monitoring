@@ -1109,6 +1109,7 @@ collect_results_all <- function(data) {
 }
 
 get_cellmeans_posteriors_area <- function(cm) {
+  spatial_lookup <- readRDS(file = paste0(data_path, "processed/spatial_lookup.RData"))
   cm |> 
     dplyr::select(ZoneName, cm) |>
     unnest(c(cm)) |>
@@ -1124,6 +1125,7 @@ get_cellmeans_posteriors_area <- function(cm) {
 }
 
 get_effects_posteriors_area <- function(e) {
+  spatial_lookup <- readRDS(file = paste0(data_path, "processed/spatial_lookup.RData"))
   e |> 
     dplyr::select(ZoneName, e) |>
     unnest(c(e)) |>
