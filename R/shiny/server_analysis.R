@@ -35,6 +35,7 @@ observeEvent(input$runAnalysisCode, {
       shinyjs::enable(selector = "a[data-value='analysis']")
       addCssClass(selector = "a[data-value='analysis']", class = "activeLink")
 
+      ## define the pool of combinations available for the dropdowns
       sub_dat <- analysis_data() |>
         dplyr::select(Type, Value_type, Normalised_against, summ_e) |>
         unnest(c(summ_e)) |>
@@ -60,9 +61,14 @@ observeEvent(input$runAnalysisCode, {
       levels_pool_diagnostics(levels_pool)
 
       levels_pool1 <- analysis_data() |>
-        dplyr::select(scale, ZoneName, Site, Var, Value_type, Normalised_against) |>
+        dplyr::select(scale, ZoneName, Site, Area, Var, Value_type, Normalised_against) |>
         distinct() |>
-        mutate(ZoneName = ifelse(scale == "zone", ZoneName, Site))
+        ## mutate(ZoneName = ifelse(scale == "zone", ZoneName, Site))
+        mutate(ZoneName = case_when(
+          scale == "zone" ~ ZoneName,
+          scale == "site" ~ Site,
+          scale == "area" ~ Area
+        ))
       levels_pool_details(levels_pool1)
       
     }

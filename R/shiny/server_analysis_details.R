@@ -121,7 +121,12 @@ select_detail <- function(focal) {
 select_details_data <- function() {
     req(analysis_data())
     data <- analysis_data() |>
-      mutate(ZoneName = ifelse(scale == "zone", ZoneName, Site))
+        mutate(ZoneName = case_when(
+          scale == "zone" ~ ZoneName,
+          scale == "site" ~ Site,
+          scale == "area" ~ Area
+        ))
+      ## mutate(ZoneName = ifelse(scale == "zone", ZoneName, Site))
     ## print(data |>
     ##   filter(scale == input$analysis_main_scale_selector) |>
     ##   filter(ZoneName == input$analysis_main_zone_selector) |>
@@ -277,6 +282,7 @@ output[["analysis-cellmeans-table"]] <- reactable::renderReactable({
   ## dat <- dat_value()
   req(mod_value_details())
   dat <- mod_value_details()
+  print(dat)
   d <- dat$nm_cm |>
     _[[1]]
   if (!is.null(d)) {
@@ -297,14 +303,27 @@ output[["analysis-cellmeans-table"]] <- reactable::renderReactable({
 select_details_model <- function() {
     req(analysis_data())
     data <- analysis_data() |>
-      mutate(ZoneName = ifelse(scale == "zone", ZoneName, Site))
-    print("select_details_model")
-    print(data)
-    print(data |> filter(scale == input$analysis_main_scale_selector) |>
-      filter(ZoneName == input$analysis_main_zone_selector) |>
-      filter(Var == input$analysis_main_var_selector) |>
-      filter(Value_type == input$analysis_main_value_type_selector) |>
-      filter(Normalised_against == input$analysis_main_normalised_against_selector) |> _[["fit"]])
+        mutate(ZoneName = case_when(
+          scale == "zone" ~ ZoneName,
+          scale == "site" ~ Site,
+          scale == "area" ~ Area
+        ))
+      ## mutate(ZoneName = ifelse(scale == "zone", ZoneName, Site))
+    ## print("select_details_model")
+    ## print(data)
+    ## print(data |> filter(scale == input$analysis_main_scale_selector) |>
+    ##         filter(ZoneName == input$analysis_main_zone_selector) |>
+    ##         filter(Var == input$analysis_main_var_selector) |>
+    ##         filter(Value_type == input$analysis_main_value_type_selector) |>
+    ##         filter(Normalised_against == input$analysis_main_normalised_against_selector)
+    ##         )
+    ## print("And then")
+
+    ## print(data |> filter(scale == input$analysis_main_scale_selector) |>
+    ##   filter(ZoneName == input$analysis_main_zone_selector) |>
+    ##   filter(Var == input$analysis_main_var_selector) |>
+    ##   filter(Value_type == input$analysis_main_value_type_selector) |>
+    ##   filter(Normalised_against == input$analysis_main_normalised_against_selector) |> _[["fit"]])
     mod <- get_filtered_model_details(data,
       sscale = input$analysis_main_scale_selector,
       zone = input$analysis_main_zone_selector,
@@ -319,16 +338,20 @@ select_details_model <- function() {
 
 
 output[["analysis-trend-plot"]] <- renderPlot({
+  print("I am here")
   req(mod_value_details())
   dat <- mod_value_details()
-  
-  dt <- select_details_model()$data 
-  if (input$analysis_main_scale_selector == "site") {
-    dt <- dt |>
-      filter(Site == input$analysis_main_zone_selector) |>
-      droplevels()
-  }
-  print(dt)
+ print(dat)
+  dt <- dat$processed_data |>
+    _[[1]]
+  ## dt <- select_details_model()$data 
+  ## print(dt)
+  ## if (input$analysis_main_scale_selector == "site") {
+  ##   dt <- dt |>
+  ##     filter(Site == input$analysis_main_zone_selector) |>
+  ##     droplevels()
+  ## }
+  ## print(dt)
 
   ## req(dat_value())
   ## req(effect_scale_value())

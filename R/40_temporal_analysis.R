@@ -71,7 +71,8 @@ module_temporal <- function() {
   saveRDS(data_zone, file = paste0(data_path, "modelled/data_zone.RData"))
   data_zone <-
     data_zone |>
-    mutate(scale = "zone") |>
+    mutate(scale = "zone",
+      processed_data = data) |>
     dplyr::select(-data, -effects) |>
     full_join(spatial_lookup |>
                 dplyr::select(Area, RegionName, ZoneName) |> 
@@ -705,7 +706,17 @@ change_palette <- c('#d73027','#fc8d59','#fee08b','#ffffff','#d9ef8b','#91cf60',
 
 compile_posteriors <- function(data, scale) {
     if (scale == "site") {
-      data <- data |>
+      ## make a version of the nested data that includes the data used to fit the models
+      data_proc <-
+        data |>
+        dplyr::select(data, fit) |>
+        unnest(c(data, fit)) |>
+        nest(processed_data = c(-fit), 
+          .by = c(ZoneName, Site, Type, Var, Value_type, Normalised_against, fit)
+        )
+      ## make a version of the nested data that includes the fitted models
+      data_fit <-
+        data |>
         dplyr::select(data, fit) |>
         unnest(c(data, fit)) |>
         dplyr::select(
@@ -716,6 +727,20 @@ compile_posteriors <- function(data, scale) {
           data = everything(),
           .by = c(ZoneName, Site, Type, Var, Value_type, Normalised_against, fit)
         )
+      ## put them together
+      data <- data_proc |> bind_cols(data_fit |> dplyr::select(data))
+      ## data <-
+      ##   data |>
+      ##   dplyr::select(data, fit) |>
+      ##   unnest(c(data, fit)) |>
+      ##   dplyr::select(
+      ##     Type, Baseline, ZoneName, RegionName, Area,
+      ##     Site, Var, Value_type, Normalised_against, cYear, fit
+      ##   ) |>
+      ##   nest(
+      ##     data = everything(),
+      ##     .by = c(ZoneName, Site, Type, Var, Value_type, Normalised_against, fit)
+      ##   )
       lst <- compile_posteriors_site(data)
     } else if (scale == "zone"){
       lst <- compile_posteriors_zone(data)
@@ -895,7 +920,8 @@ get_effects_summ <- function(pstrs_e) {
     )) |> 
     mutate(year = str_extract(contrast, "[0-9]{4}")) |>
       dplyr::select(-variable) |>
-      ungroup()
+      ungroup() |>
+      suppressWarnings() |> suppressMessages()
 }
 
 
@@ -954,8 +980,9 @@ get_cellmeans_posteriors <- function(dat, mod) {
       pivot_longer(cols = c(everything()), names_to = "contrast", values_to = "value") |>
       as_draws_df() |>
       filter(contrast != "Baseline") |>
-      left_join(dat |> dplyr::select(contrast = cYear, Baseline), by = "contrast") |> 
-      group_by(contrast, Baseline) 
+      left_join(dat |> dplyr::select(contrast = cYear, Baseline), by = "contrast") |>
+      group_by(contrast, Baseline) |>
+      suppressWarnings() |> suppressMessages()
   }
   cm |>
     mutate(scale = unique(dat$scale)) |>
@@ -990,7 +1017,8 @@ get_effects_posteriors <- function(dat, mod) {
         values_to = ".value"
       ) |> 
       ungroup() |>
-      group_by(contrast)
+      group_by(contrast) |>
+      suppressWarnings() |> suppressMessages()
   }
   eff |> mutate(scale = unique(dat$scale)) |> 
     group_by(scale, .add = TRUE)
@@ -1115,11 +1143,12 @@ get_cellmeans_posteriors_area <- function(cm) {
     dplyr::select(ZoneName, cm) |>
     unnest(c(cm)) |>
     left_join(spatial_lookup |>
-      filter(ZoneName %in% zones) |>
-      dplyr::select(ZoneName, Area, Zone_weights)) |>
+                filter(ZoneName %in% zones) |>
+                dplyr::select(ZoneName, Area, Zone_weights) |>
+                mutate(Zone_weights = Zone_weights / sum(Zone_weights))) |>
     dplyr::select(contrast, .value, .draw, Baseline, Zone_weights) |>
     group_by(contrast, .draw, Baseline) |>
-    summarise(.value = sum(.value * Zone_weights)) |>
+    summarise(.value = sum(.value * Zone_weights, na.rm = TRUE)) |>
     ungroup(.draw) |>
     as_draws() |>
     mutate(scale = "area") |> 
@@ -1135,10 +1164,11 @@ get_effects_posteriors_area <- function(e) {
     unnest(c(e)) |>
     left_join(spatial_lookup |>
                 filter(ZoneName %in% zones) |>
-                dplyr::select(ZoneName, Area, Zone_weights)) |>
+                dplyr::select(ZoneName, Area, Zone_weights) |>
+                mutate(Zone_weights = Zone_weights / sum(Zone_weights))) |>
     dplyr::select(contrast, .value, .draw, Zone_weights) |>
     group_by(contrast, .draw) |>
-    summarise(.value = sum(.value * Zone_weights)) |>
+    summarise(.value = sum(.value * Zone_weights, na.rm = TRUE)) |>
     ungroup(.draw) |> 
     as_draws() |> 
     mutate(scale = "area") |> 
@@ -1198,9 +1228,20 @@ compile_posteriors_area <- function(data, scale = "area") {
     nm_l <- paste0(data_path, "modelled/log_models.log")
 
     spatial_lookup <- readRDS(file = paste0(data_path, "processed/spatial_lookup.RData"))
+    ## collect processed data
+    data_proc <-
+      data |>
+      dplyr::select(processed_data) |>
+      unnest(c(processed_data), keep_empty = TRUE) |>
+      nest( ## nest by Area
+        processed_data = everything(),
+        .by = c(Area, Type, Var, Value_type, Normalised_against)
+      ) |>
+      filter(!is.na(Area))
+    ## collect posteriors
     data <-
       data |>
-      dplyr::select(-fit, -valid, -scale, -summ_e) |>
+      dplyr::select(-fit, -valid, -scale, -summ_e, -processed_data) |>
       unnest(c(nm_cm, nm_e), keep_empty = TRUE) |>
       nest( ## nest by Area
         data = c(nm_cm, nm_e, ZoneName, Area),
@@ -1209,11 +1250,12 @@ compile_posteriors_area <- function(data, scale = "area") {
       mutate(effects = map(
         .x = data,
         .f = ~ {
-         lst <- get_all_posteriors_area(.x)
-         lst
+          lst <- get_all_posteriors_area(.x)
+          lst
         }
-      ))
-    data
+      )) |>
+      filter(!is.na(Type))
+    data |> bind_cols(data_proc |> dplyr::select(processed_data))
   },
   stage_ = 5,
   name_ = "Compile area results",

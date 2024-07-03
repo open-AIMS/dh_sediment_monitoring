@@ -175,6 +175,57 @@ output$analysis_overview <- renderUI({
                     )
                   })
                 )
+            } else if (input$analysis_overview_scale_type_selector == "area") {
+              print(input$analysis_overview_scale_type_selector)
+              print(data |>
+                      dplyr::select(-scale) |>
+                      unnest(c(summ_e)) |>
+                      dplyr::select(scale, Area, Type, Var, Value_type, contrast, Normalised_against, change, year) |>
+                      ## filter(
+                      ##   scale == input$analysis_overview_scale_type_selector#,
+                      ##   ## Normalised_against == input$analysis_overview_normalised_type_selector,
+                      ##   ## Value_type == input$analysis_overview_value_type_selector,
+                      ##   ## year == input$analysis_overview_year_selector,
+                      ##   ## contrast == input$analysis_overview_contrast_selector
+                      ## ) |> 
+                      pull(Area) |> unique())
+
+              print(data |>
+                dplyr::select(-scale) |>
+                unnest(c(summ_e)) |>
+                dplyr::select(scale, Area, Type, Var, Value_type, contrast, Normalised_against, change, year))
+              d <- data |>
+                dplyr::select(-scale) |> 
+                unnest(c(summ_e)) |>
+                dplyr::select(scale, Area, Type, Var, Value_type, contrast, Normalised_against, change, year) |>
+                filter(
+                  scale == input$analysis_overview_scale_type_selector,
+                  Normalised_against == input$analysis_overview_normalised_type_selector,
+                  Value_type == input$analysis_overview_value_type_selector,
+                  year == input$analysis_overview_year_selector,
+                  contrast == input$analysis_overview_contrast_selector
+                ) |> 
+                ## Type == input$analysis_overview_type_selector,
+                ## str_detect(contrast, "2023")) |>
+                filter(case_when(
+                  input$analysis_overview_type_selector != "All" ~ Type == input$analysis_overview_type_selector,
+                  TRUE ~ TRUE
+                )) |>
+                dplyr::select(-Value_type, -contrast, -year) |>
+                  mutate(Area = factor(as.character(Area))) |>
+                  arrange(Area, Type, Var) |>
+                  pivot_wider(id_cols = everything(), names_from = Var, values_from = change) |>
+                  dplyr::select(-scale, -Type) |>
+                  mutate(Area = as.character(Area)) |> 
+                reactable(
+                  pagination = FALSE,
+                  defaultColDef = colDef(style = function(value) {
+                    list(
+                      background = change_palette[value],
+                      color = change_palette[value]
+                    )
+                  })
+                )
             }
             d
           })
