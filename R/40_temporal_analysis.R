@@ -702,8 +702,8 @@ validate_model_outliers <- function(resids) {
 }
 
 
-## change_palette <- c('#d73027','#fc8d59','#fee08b','#ffffff','#d9ef8b','#91cf60','#1a9850')
-change_palette <- c('#d73027','#fc8d59','#fee08b','#c6c6c6','#d9ef8b','#91cf60','#1a9850')
+change_palette <- c('#d73027','#fc8d59','#fee08b','#ffffff','#d9ef8b','#91cf60','#1a9850')
+## change_palette <- c('#d73027','#fc8d59','#fee08b','#c6c6c6','#d9ef8b','#91cf60','#1a9850')
 
 compile_posteriors <- function(data, scale) {
     if (scale == "site") {

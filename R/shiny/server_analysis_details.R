@@ -277,23 +277,45 @@ output$analysis_trends <- renderUI({
 ## ##   }
 ## ## )
 
+
+lor_table_symbol <- function(value) {
+  if (is.na(value)) return("")
+  if (value) {
+    tagAppendAttributes(shiny::icon("flag"), style = paste("color: black; font-weight:900;"))
+  } else {
+    ""
+  }
+}
+
 output[["analysis-cellmeans-table"]] <- reactable::renderReactable({
   ## req(dat_value())
   ## dat <- dat_value()
   req(mod_value_details())
   dat <- mod_value_details()
-  print(dat)
+  ## print("Cellmeans table")
+  ## print(dat)
   d <- dat$nm_cm |>
     _[[1]]
   if (!is.null(d)) {
     d <- d |>
       readRDS()
-    print(d)
+    ## print(d)
     d <- d |> 
       get_cellmeans_summ()
-   d |> 
-    mutate(across(c(median, lower, upper), ~ round(.x, 3))) |> 
-    reactable()
+    ## get the lor_flag
+    dd <- dat |>
+      dplyr::select(processed_data) |>
+      unnest(processed_data) |>
+      dplyr::select(Year, lor_flag) |>
+      mutate(Year = as.character(Year))
+   d |>
+     mutate(across(c(median, lower, upper), ~ round(.x, 3))) |>
+     left_join(dd, by = c("contrast" = "Year")) |>
+     reactable(
+       columns = list(lor_flag = colDef(
+         cell = function(value) lor_table_symbol(value)
+       ))
+     )
   } else {
     tribble(~"The model does not contain both baseline and reporting data, and thus no comparisons can be provided") |>
       reactable()
@@ -338,10 +360,10 @@ select_details_model <- function() {
 
 
 output[["analysis-trend-plot"]] <- renderPlot({
-  print("I am here")
+  ## print("I am here")
   req(mod_value_details())
   dat <- mod_value_details()
- print(dat)
+ ## print(dat)
   dt <- dat$processed_data |>
     _[[1]]
   ## dt <- select_details_model()$data 

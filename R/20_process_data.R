@@ -538,7 +538,7 @@ standardise_metals <- function(df) {
       NA, Normalised_against),
       Normalised_against = ifelse(Var == "V (mg/kg)" & Value_type == "Standardised",
         "Fe", Normalised_against),
-      Normalised_against = ifelse(Var %in% "As (mg/kg)" & RegionName == "Outer" & Value_type == "Stanardised",
+      Normalised_against = ifelse(Var %in% "As (mg/kg)" & RegionName == "Outer" & Value_type == "Standardised",
         "Mn",
         ifelse(Var %in% "As (mg/kg)" & RegionName == "Inner" & Value_type == "Standardised",
           "Fe", Normalised_against)),

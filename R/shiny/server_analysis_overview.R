@@ -129,24 +129,27 @@ output$analysis_overview <- renderUI({
                   mutate(ZoneName = factor(as.character(ZoneName))) |>
                   arrange(ZoneName, Type, Var) |>
                   pivot_wider(id_cols = everything(), names_from = Var, values_from = change) |>
-                  dplyr::select(-scale, -Type) |>
+                  dplyr::select(-scale, -Type, -Normalised_against) |>
                   mutate(ZoneName = as.character(ZoneName)) |> 
-                reactable(
-                  pagination = FALSE,
-                  defaultColDef = colDef(style = function(value) {
-                    list(
-                      background = change_palette[value],
-                      color = change_palette[value]
-                    )
-                  })
-                )
+                overview_reactable()
+                ## reactable(
+                ##   pagination = FALSE,
+                ##   defaultColDef = colDef(style = function(value) {
+                ##     list(
+                ##       background = change_palette[value],
+                ##       color = change_palette[value]
+                ##     )
+                ##   })
+                ## )
             } else if (input$analysis_overview_scale_type_selector == "site") {
               d <- data |>
+                mutate(lor_flag = map(.x = processed_data, .f =  ~ any(.x$lor_flag))) |> 
                 dplyr::select(-scale) |> 
                 ## dplyr::select(-data, -fit) |>
                 ## unnest(c(effects)) |>
                 unnest(c(summ_e)) |>
-                dplyr::select(scale, Site, Type, Var, Value_type, contrast, Normalised_against, change, year) |>
+                dplyr::select(scale, Site, Type, Var, Value_type, contrast,
+                  Normalised_against, change, year, lor_flag) |>
                 filter(
                   scale == input$analysis_overview_scale_type_selector,
                   Normalised_against == input$analysis_overview_normalised_type_selector,
@@ -163,18 +166,21 @@ output$analysis_overview <- renderUI({
                 dplyr::select(-Value_type, -contrast, -year) |>
                   mutate(Site = factor(as.character(Site))) |>
                   arrange(Site, Type, Var) |>
+                mutate(change = ifelse(lor_flag, paste(change, "LOR"), change)) |>
+                dplyr::select(-lor_flag) |>
                   pivot_wider(id_cols = everything(), names_from = Var, values_from = change) |>
-                dplyr::select(-scale, -Type) |> 
+                dplyr::select(-scale, -Type, -Normalised_against) |> 
                 mutate(Site = as.character(Site)) |>
-                reactable(
-                  pagination = FALSE,
-                  defaultColDef = colDef(style = function(value) {
-                    list(
-                      background = change_palette[value],
-                      color = change_palette[value]
-                    )
-                  })
-                )
+                overview_reactable()
+                ## reactable(
+                ##   pagination = FALSE,
+                ##   defaultColDef = colDef(style = function(value) {
+                ##     list(
+                ##       background = change_palette[value],
+                ##       color = change_palette[value]
+                ##     )
+                ##   })
+                ## )
             } else if (input$analysis_overview_scale_type_selector == "area") {
               print(input$analysis_overview_scale_type_selector)
               print(data |>
@@ -195,7 +201,7 @@ output$analysis_overview <- renderUI({
                 unnest(c(summ_e)) |>
                 dplyr::select(scale, Area, Type, Var, Value_type, contrast, Normalised_against, change, year))
               d <- data |>
-                dplyr::select(-scale) |> 
+                dplyr::select(-scale) |>
                 unnest(c(summ_e)) |>
                 dplyr::select(scale, Area, Type, Var, Value_type, contrast, Normalised_against, change, year) |>
                 filter(
@@ -204,7 +210,7 @@ output$analysis_overview <- renderUI({
                   Value_type == input$analysis_overview_value_type_selector,
                   year == input$analysis_overview_year_selector,
                   contrast == input$analysis_overview_contrast_selector
-                ) |> 
+                ) |>
                 ## Type == input$analysis_overview_type_selector,
                 ## str_detect(contrast, "2023")) |>
                 filter(case_when(
@@ -212,20 +218,23 @@ output$analysis_overview <- renderUI({
                   TRUE ~ TRUE
                 )) |>
                 dplyr::select(-Value_type, -contrast, -year) |>
-                  mutate(Area = factor(as.character(Area))) |>
-                  arrange(Area, Type, Var) |>
-                  pivot_wider(id_cols = everything(), names_from = Var, values_from = change) |>
-                  dplyr::select(-scale, -Type) |>
-                  mutate(Area = as.character(Area)) |> 
-                reactable(
-                  pagination = FALSE,
-                  defaultColDef = colDef(style = function(value) {
-                    list(
-                      background = change_palette[value],
-                      color = change_palette[value]
-                    )
-                  })
-                )
+                mutate(Area = factor(as.character(Area))) |>
+                arrange(Area, Type, Var) |>
+                pivot_wider(id_cols = everything(), names_from = Var, values_from = change) |>
+                dplyr::select(-scale, -Type, -Normalised_against) |>
+                mutate(Area = as.character(Area)) |>
+                overview_reactable()
+                ## reactable(
+                ##   pagination = FALSE,
+                ##   defaultColDef = colDef(style = function(value) {
+                ##     list(
+                ##       background = change_palette[value],
+                ##       color = change_palette[value]
+                ##     )
+                ##   }),
+                ##   bordered = TRUE,
+                ##   theme = reactableTheme(borderColor = "#dfe2e5",)
+                ## )
             }
             d
           })
@@ -233,6 +242,37 @@ output$analysis_overview <- renderUI({
       )
     )
 })
+
+overview_reactable <- function(d) {
+  d |> 
+    reactable(
+      pagination = FALSE,
+      defaultColDef = colDef(
+        align = "center",
+        cell =  function(value) lor_symbol(value),
+        style = function(value) {
+          list(
+            background = suppressWarnings(ifelse(is.na(value), "#c6c6c6",
+              change_palette[as.numeric(str_replace(value, " LOR", ""))])),
+            color = suppressWarnings(ifelse(is.na(value), "#c6c6c6", change_palette[as.numeric(value)]))
+            ## background = ifelse(is.na(value), "#c6c6c6", change_palette[value]),
+            ## color = change_palette[value]
+          )
+        }),
+      bordered = TRUE,
+      theme = reactableTheme(borderColor = "#dfe2e5",)
+    )
+}
+
+lor_symbol <- function(value) {
+  if (is.na(value)) return("")
+  if (str_detect(value, "LOR")) {
+    tagAppendAttributes(shiny::icon("flag"), style = paste("color: black; font-weight:900;"))
+  } else {
+    value
+    ## tagAppendAttributes(shiny::icon("circle-xmark"), style = paste("color: red; font-weight:900;"))
+  }
+}
 
 #If it is supplied (e.g. from the input value) use it, otherwise,
 #get from first combination....
