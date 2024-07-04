@@ -307,7 +307,8 @@ output[["analysis-cellmeans-table"]] <- reactable::renderReactable({
       dplyr::select(processed_data) |>
       unnest(processed_data) |>
       dplyr::select(Year, lor_flag) |>
-      mutate(Year = as.character(Year))
+      mutate(Year = as.character(Year)) |>
+      distinct()
    d |>
      mutate(across(c(median, lower, upper), ~ round(.x, 3))) |>
      left_join(dd, by = c("contrast" = "Year")) |>
