@@ -169,7 +169,9 @@ prepare_data <- function(data) {
       nest(data = everything(), .by = c(ZoneName, Type, Var, Value_type, Normalised_against)) |>
       mutate(data = map(
         .x = data,
-        .f = ~ .x |> droplevels()
+        .f = ~ .x |>
+          mutate(Sample = paste0(Site, replace_na(str_extract(Sample_key, "rep.|dup."), ""))) |> 
+          droplevels()
       ))
     #nest_by(ZoneName, Var, Value_type, .keep = TRUE) 
   },
@@ -199,6 +201,9 @@ prepare_formula <- function(data) {
             } else {
               form <- bf(Values ~ 1 + (1 | Site), family = Gamma(link = "log"))
             }
+          }
+          if (any(.x$Replicate_flag) | any(.x$Duplicate_flag)) {
+            form <- update(form, . ~ . + (1 | Sample))
           }
           form
         }

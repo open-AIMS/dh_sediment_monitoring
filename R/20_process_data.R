@@ -424,7 +424,7 @@ apply_standardisation_rules <- function(df) {
       mutate(Type = ifelse(Type == "metals", "metals", "hydrocarbons")) |>
       nest_by(Type, .keep = TRUE) |>
       mutate(data1 = list({
-        standardise_data(data)
+        standardise_data(data)## |> filter(!is.na(Site))
       })) |>
       pull(data1) |>
       bind_rows()
@@ -439,15 +439,82 @@ apply_standardisation_rules <- function(df) {
 ##'
 ##' Standardise data
 ##' @title Standardise data
-##' @param df 
-##' @return a tibble 
+##' @param df
+##' @return a tibble
 ##' @author Murray Logan
 standardise_data <- function(df) {
   if (unique(df$Type) == "metals") {
-    standardise_metals(df) 
+    standardise_metals(df)
   } else {
-    standardise_hydrocarbons(df) 
+    ## df <- adjust_names_for_replicates_and_duplicates(df) 
+    standardise_hydrocarbons(df)
   }
+}
+
+
+##' adjust_names_to_replicates_and_duplicate
+##'
+##' adjust_names_to_replicates_and_duplicates
+##' @title Adjust the names of Sample_key for replicates and duplicates
+##' @param df
+##' @return a tibble
+##' @author Murray Logan
+## There are instances where there are replicate and duplicate hydrocarbon samples
+## however, in many instances, there are no replicates or duplicates for the TOC
+## As a result, the Sample_key is different for the TOC and the hydrocarbons
+## and this causes issues when trying to join hydrocarbons and the TOC (which is
+## essentially done via a pivot wider.
+## For instances in which there are replicates or duplicates in the non TOC,
+## the TOC values are duplicated.  This is achieved by:
+## - filtering the data to only include the non TOC values
+## - if there are replicates or duplicates, then the Sample_keys are extracted
+## - the data is pivotted wider
+## - the TOC values are filled down
+## - the data is pivotted longer
+## - the Sample_keys are filtered to only include the Replicated (or duplicated)
+##   Sample_keys that have replicates or duplicates
+## - the data is joined back to the original data
+adjust_names_for_replicates_and_duplicates <- function(df) {
+  df1 <- df |>
+    nest(data = everything(), .by = c(Site_ID, Year)) |>
+    mutate(data1 = map(
+      .x = data,
+      .f = ~ {
+        .x_hydrocarbons <- .x |> filter(Var != "TOC (%)")
+        .x_toc <- .x |> filter(Var == "TOC (%)")
+        if ((any(.x_hydrocarbons$Replicate_flag) & !any(.x_toc$Replicate_flag)) |
+              (any(.x_hydrocarbons$Duplicate_flag) & !any(.x_toc$Duplicate_flag))) {
+          sample_keys_hydrocarbons <- .x_hydrocarbons |>
+            pull(Sample_key) |>
+            unique()
+          sample_keys_toc <- .x_toc |>
+            pull(Sample_key) |>
+            unique()
+          ## Extract a pair of Sample keys with and without the replicate/duplicate tags
+          temp <- .x_hydrocarbons |>
+            mutate(temp_sample_key = str_extract(Sample_key, sample_keys_toc)) |>
+            dplyr::select(Sample_key, temp_sample_key) |>
+            distinct() |>
+            dplyr::rename(ghost_sample_key = Sample_key) |>
+            dplyr::rename(old_Sample_key = temp_sample_key)
+          ## use this to full join onto the TOC data in order to replicate the TOC values
+          ## a number of times that is equal to the number of replicates/duplicates
+          .x_toc <- .x_toc |>
+            full_join(temp, by = c(Sample_key = "old_Sample_key")) |>
+            dplyr::rename(Old_Sample_key = Sample_key) |>
+            dplyr::rename(Sample_key = ghost_sample_key) 
+          if (any(is.na(.x_toc$Var))) print(.x_toc |> as.data.frame())
+          ## Join and return the hydrocarbons and TOC data back together
+          bind_rows(.x_hydrocarbons, .x_toc)
+        } else {
+          return(.x)
+        }
+      }
+    )) |>
+    dplyr::select(data1) |>
+    unnest(data1) |>
+    ungroup()
+  df1
 }
 
 ##' Standardise metals
@@ -567,43 +634,81 @@ standardise_metals <- function(df) {
 ##' @return a tibble 
 ##' @author Murray Logan
 standardise_hydrocarbons <- function(df) {
-  df_old <- df |> dplyr::select(Var, lor_flag, Sample_key)
-  df1 <- df |>
-    dplyr::select(-lor_flag) |> 
-    pivot_wider(
-      id_cols = everything(),
-      names_from = Var,
-      values_from = values
-    ) |>
-    mutate(across(
-      any_of(
-        c(
-          ">C10 _C16 (mg/kg)",
-          ">C16 _C34 (mg/kg)",
-          ">C34 _C40 (mg/kg)",
-          ">C10_C40 (mg/kg)"
-        )
-      ),
-      list(n = ~ . / `TOC (%)`),
-      .names = "{.fn}_{.col}"
-    )) |>
-    ## Now pivot longer again, but put the standardised values in a separate field
+  df_hydrocarbons <- df |>
+    filter(Var != "TOC (%)") |>
+    mutate(temp_Sample_key = str_replace(Sample_key, "rep.", ""))
+
+  df_toc <- df |> filter(Var == "TOC (%)")
+
+  ## Join the hydrocarbons with the TOC
+  df_join <-
+    df_hydrocarbons |>
+    left_join(df_toc |> dplyr::select(Sample_key, `TOC (%)` = values),
+      by = c("Sample_key" = "Sample_key"))
+  ## Extrat the ones whose Sample_keys matched
+  df_match <- df_join |> 
+    filter(!is.na(`TOC (%)`)) 
+  ## Now for ones where the Sample_keys did not match,
+  ## we will try to match them by a hydrocarbon Sample_key that does
+  ## not have  "rep." 
+  df_no_match <- df_join |>
+    filter(is.na(`TOC (%)`)) |>
+    dplyr::select(-`TOC (%)`) |>
+    left_join(df_toc |> dplyr::select(Sample_key, `TOC (%)` = values),
+      by = c("temp_Sample_key" = "Sample_key")) 
+  ## Combine the two
+  df1 <- bind_rows(df_match, df_no_match, df_toc) 
+
+  df1 <- df1 |>
+    mutate(Standardised = values / `TOC (%)`) |>
+    dplyr::select(-`TOC (%)`) |>
+    dplyr::rename("Unstandardised" = values) |>
     pivot_longer(
-      cols = matches("^(n2?_)?>C[0-9].*|TOC\\s\\(%\\)"),
-      names_to = "Var",
+      cols = c("Unstandardised", "Standardised"),
+      names_to = "Value_type",
       values_to = "Values"
     ) |>
-    mutate(
-            Value_type = case_when(
-                    str_detect(Var, "n2_") ~ "Alt_standardised",
-                    str_detect(Var, "n_") ~ "Standardised",
-                    .default = "Unstandardised"
-            ),
-            Var = str_replace(Var, "n2?_", "")
-    ) |>
-    filter(!is.na(Values))    #Remove these cases - they are caused by the hydrocarbons having replicates and the TOC not having replicates - so the Sample_key are different
-  df1 |> full_join(df_old, by = c("Sample_key", "Var")) 
+    filter(!(is.na(Values) & Value_type == "Standardised"))
+ df1 
 }
+## standardise_hydrocarbons_old <- function(df) {
+##   df_old <- df |> dplyr::select(Var, lor_flag, Sample_key)
+##   df1 <- df |>
+##     dplyr::select(-lor_flag) |> 
+##     pivot_wider(
+##       id_cols = everything(),
+##       names_from = Var,
+##       values_from = values
+##     ) |>
+##     mutate(across(
+##       any_of(
+##         c(
+##           ">C10 _C16 (mg/kg)",
+##           ">C16 _C34 (mg/kg)",
+##           ">C34 _C40 (mg/kg)",
+##           ">C10_C40 (mg/kg)"
+##         )
+##       ),
+##       list(n = ~ . / `TOC (%)`),
+##       .names = "{.fn}_{.col}"
+##     )) |>
+##     ## Now pivot longer again, but put the standardised values in a separate field
+##     pivot_longer(
+##       cols = matches("^(n2?_)?>C[0-9].*|TOC\\s\\(%\\)"),
+##       names_to = "Var",
+##       values_to = "Values"
+##     ) |>
+##     mutate(
+##             Value_type = case_when(
+##                     str_detect(Var, "n2_") ~ "Alt_standardised",
+##                     str_detect(Var, "n_") ~ "Standardised",
+##                     .default = "Unstandardised"
+##             ),
+##             Var = str_replace(Var, "n2?_", "")
+##     ) |>
+##     filter(!is.na(Values))    #Remove these cases - they are caused by the hydrocarbons having replicates and the TOC not having replicates - so the Sample_key are different
+##   df1 |> full_join(df_old, by = c("Sample_key", "Var")) 
+## }
 
 ##' Create site lookup
 ##'
