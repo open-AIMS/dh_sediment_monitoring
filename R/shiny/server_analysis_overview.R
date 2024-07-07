@@ -107,30 +107,40 @@ output$analysis_overview <- renderUI({
           reactable::renderReactable({
             if (input$analysis_overview_scale_type_selector == "zone") {
               d <- data |>
-                dplyr::select(-scale) |> 
+                dplyr::select(-scale) |>
                 ## dplyr::select(-data, -fit) |>
                 ## unnest(c(effects)) |>
                 unnest(c(summ_e)) |>
-                dplyr::select(scale, ZoneName, Type, Var, Value_type, contrast, Normalised_against, change, year) |>
+                dplyr::select(
+                  scale, ZoneName, Type, Var, Value_type,
+                  contrast, Normalised_against, change, year
+                ) |>
                 filter(
                   scale == input$analysis_overview_scale_type_selector,
                   Normalised_against == input$analysis_overview_normalised_type_selector,
                   Value_type == input$analysis_overview_value_type_selector,
                   year == input$analysis_overview_year_selector,
                   contrast == input$analysis_overview_contrast_selector
-                ) |> 
+                ) |>
                 ## Type == input$analysis_overview_type_selector,
                 ## str_detect(contrast, "2023")) |>
                 filter(case_when(
-                  input$analysis_overview_type_selector != "All" ~ Type == input$analysis_overview_type_selector,
+                  input$analysis_overview_type_selector != "All" ~
+                    Type == input$analysis_overview_type_selector,
                   TRUE ~ TRUE
                 )) |>
                 dplyr::select(-Value_type, -contrast, -year) |>
-                  mutate(ZoneName = factor(as.character(ZoneName))) |>
+                mutate(ZoneName = factor(as.character(ZoneName))) |>
+                mutate(
+                  Var = factor(Var),
+                  Var = if_else(Type == "hydrocarbons",
+                    forcats::fct_relevel(Var, ">C10_C40 (mg/kg)", after = 3), Var)
+                ) |> 
                   arrange(ZoneName, Type, Var) |>
-                  pivot_wider(id_cols = everything(), names_from = Var, values_from = change) |>
-                  dplyr::select(-scale, -Type, -Normalised_against) |>
-                  mutate(ZoneName = as.character(ZoneName)) |> 
+                pivot_wider(id_cols = everything(),
+                  names_from = Var, values_from = change) |>
+                dplyr::select(-scale, -Type, -Normalised_against) |>
+                mutate(ZoneName = as.character(ZoneName)) |> 
                 overview_reactable()
                 ## reactable(
                 ##   pagination = FALSE,
@@ -165,6 +175,11 @@ output$analysis_overview <- renderUI({
                 )) |>
                 dplyr::select(-Value_type, -contrast, -year) |>
                   mutate(Site = factor(as.character(Site))) |>
+                mutate(
+                  Var = factor(Var),
+                  Var = if_else(Type == "hydrocarbons",
+                    forcats::fct_relevel(Var, ">C10_C40 (mg/kg)", after = 3), Var)
+                ) |> 
                   arrange(Site, Type, Var) |>
                 mutate(change = ifelse(lor_flag, paste(change, "LOR"), change)) |>
                 dplyr::select(-lor_flag) |>
@@ -219,6 +234,11 @@ output$analysis_overview <- renderUI({
                 )) |>
                 dplyr::select(-Value_type, -contrast, -year) |>
                 mutate(Area = factor(as.character(Area))) |>
+                mutate(
+                  Var = factor(Var),
+                  Var = if_else(Type == "hydrocarbons",
+                    forcats::fct_relevel(Var, ">C10_C40 (mg/kg)", after = 3), Var)
+                ) |> 
                 arrange(Area, Type, Var) |>
                 pivot_wider(id_cols = everything(), names_from = Var, values_from = change) |>
                 dplyr::select(-scale, -Type, -Normalised_against) |>
