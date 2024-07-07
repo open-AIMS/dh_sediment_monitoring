@@ -24,12 +24,33 @@ make_brms_dharma_res <- function(brms_model, seed = 10, ...) {
           all_of(random_terms), \(x)paste0("NEW_", x) |> as.factor()
         ))
       set.seed(seed)
-      brms_sims <- brms::posterior_predict(
-        brms_model,
-        re_formula = NULL, newdata = new_data,
-        allow_new_levels = TRUE, sample_new_levels = "gaussian"
-      ) |>
-        t()
+      ## When the model contains random effects in which most (but not all) have only one level
+      ## the below might fail.  In this case, we will run again, but with
+      ## `sample_new_levels = "uncertainty"`
+
+      #wrap the following in a tryCatch
+      brms_sims <- tryCatch({
+        brms_sims <- brms::posterior_predict(
+          brms_model,
+          re_formula = NULL, newdata = new_data,
+          allow_new_levels = TRUE, sample_new_levels = "gaussian"
+        ) |>
+          t()
+      }, error = function(e) {
+        brms_sims <- brms::posterior_predict(
+          brms_model,
+          re_formula = NULL, newdata = new_data,
+          allow_new_levels = TRUE, sample_new_levels = "uncertainty"
+        ) |>
+          t()
+      })
+      ## brms_sims <- brms::posterior_predict(
+      ##   brms_model,
+      ##   re_formula = NULL, newdata = new_data,
+      ##   allow_new_levels = TRUE, sample_new_levels = "gaussian"
+      ## ) |>
+      ##   t()
+      
       fitted_median_brms <- apply(brms_sims, 1, median)
       ## fitted_median_brms <- apply(
       ##     t(brms::posterior_epred(brms_model, ndraws = ndraws, re.form = NA)),
@@ -66,7 +87,8 @@ SUYR_prior_and_posterior <- function(mod) {
     ## rhs <-
     ##     rhs[-grep("\\|",rhs)]
     wch.rnd <- rhs[grep("\\|", rhs)]
-    if (length(wch.rnd)>0) f <- update(f, paste("~ . -",wch.rnd))
+    ## if (length(wch.rnd)>0) f <- update(f, paste("~ . -",wch.rnd))
+    if (length(wch.rnd)>0) f <- update(f, paste("~ .", paste("-", wch.rnd, collapse = "")))
     no.offset <- function(x, preserve = NULL) {
       k <- 0
       proc <- function(x) {
@@ -137,27 +159,65 @@ SUYR_prior_and_posterior <- function(mod) {
 
     ## get_priors(mod) |> filter(str_detect(Parameter, "prior_"))
 
+    ## brms_names <- fixed.pars |> str_subset("Intercept", negate = TRUE) |> str_replace("^b_", "")
+    ## mod.pp <- mod %>%
+    ##     as_draws_df() %>%
+    ##     dplyr::select(any_of(c(pars, priors))) %>%
+    ##     mutate(b_Intercept = b_Intercept + scal) %>%
+    ##     pivot_longer(cols=everything(), names_to='key', values_to='value') %>% 
+    ##     mutate(Type = ifelse(str_detect(key, 'prior'), 'Prior', 'Posterior'),
+    ##            Parameter = ifelse(Type == 'Prior',
+    ##                               str_remove(key, "^prior_"),
+    ##                               str_remove(key, "^b_")
+    ##                               ),
+    ##            ## Parameter = ifelse(Type == 'Posterior',
+    ##            ##                     str_remove(Parameter, "__.*"),
+    ##            ##                    Parameter),
+    ##            ## Class = ifelse(Parameter %in% brms_names, 'b', Parameter),
+    ##            Class = ifelse(Parameter %in% brms_names, 'b', Parameter),
+    ##            Class = ifelse(Type == 'Posterior', str_remove(Class, "__.*"), Class),
+    ##            Class = ifelse(Type == 'Posterior' & Parameter %in% str_remove(priors, "prior_b_"), paste0("b_", Parameter), Class)
+    ##       ) %>%
+    ##     suppressWarnings()
+
+    ## We now need to collate the values and make sure the names are consistent
     brms_names <- fixed.pars |> str_subset("Intercept", negate = TRUE) |> str_replace("^b_", "")
     mod.pp <- mod %>%
-        as_draws_df() %>%
-        dplyr::select(any_of(c(pars, priors))) %>%
-        mutate(b_Intercept = b_Intercept + scal) %>%
-        pivot_longer(cols=everything(), names_to='key', values_to='value') %>% 
-        mutate(Type = ifelse(str_detect(key, 'prior'), 'Prior', 'Posterior'),
-               Parameter = ifelse(Type == 'Prior',
-                                  str_remove(key, "^prior_"),
-                                  str_remove(key, "^b_")
-                                  ),
-               ## Parameter = ifelse(Type == 'Posterior',
-               ##                     str_remove(Parameter, "__.*"),
-               ##                    Parameter),
-               ## Class = ifelse(Parameter %in% brms_names, 'b', Parameter),
-               Class = ifelse(Parameter %in% brms_names, 'b', Parameter),
-               Class = ifelse(Type == 'Posterior', str_remove(Class, "__.*"), Class),
-               Class = ifelse(Type == 'Posterior' & Parameter %in% str_remove(priors, "prior_b_"), paste0("b_", Parameter), Class)
-          ) %>%
-        suppressWarnings()
-    
+      as_draws_df() %>%
+      dplyr::select(any_of(c(pars, priors))) %>%
+      mutate(b_Intercept = b_Intercept + scal) %>%
+      pivot_longer(cols=everything(), names_to='key', values_to='value') 
+
+    prior_keys <- mod.pp |> filter(str_detect(key, 'prior')) |>
+      pull(key) |> unique()
+    prior_class <- prior_keys |> str_replace("^prior_", "") |> 
+      str_replace_all(paste0("_+", brms_names, collapse = "|"), "")
+    posterior_keys <- mod.pp |> filter(str_detect(key, "prior", negate = TRUE)) |> 
+      pull(key) |> unique()
+    posterior_class <- posterior_keys |>
+      str_replace("^b_Intercept", "Intercept") |> 
+      str_replace("^b_(.*)", "b") |>
+      str_replace_all(paste0("_+", brms_names, collapse = "|"), "")
+
+    #which prior key is missing from the posterior class
+    wch.1 <- which(!prior_class %in%  posterior_class)
+    prior_class[wch.1] <- posterior_class[str_detect(posterior_class, prior_class[wch.1])]
+    #which posterior key is missing from the prior class
+    wch.2 <- which(!posterior_class %in%  prior_class)
+    posterior_class[wch.2] <- str_replace(posterior_class[wch.2], "__Intercept", "")
+
+    prior_posterior_lookup <-
+      data.frame(key = c(prior_keys), Class = c(prior_class)) |>
+      bind_rows(data.frame(key = c(posterior_keys), Class = c(posterior_class)))
+
+    mod.pp <- mod.pp |>
+      mutate(Type = ifelse(str_detect(key, 'prior'), 'Prior', 'Posterior'),
+        Parameter = ifelse(Type == 'Prior',
+          str_remove(key, "^prior_"),
+          str_remove(key, "^b_")
+        )) |> 
+      full_join(prior_posterior_lookup, by = c("key" = "key")) |>
+      suppressWarnings()
     return(
         ggplot(data = NULL, aes(x=Type,  y=value)) +
         stat_pointinterval(data = mod.pp %>% filter(Type == 'Prior')) +

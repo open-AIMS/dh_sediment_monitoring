@@ -630,7 +630,8 @@ validate_models <- function(data) {
           l_d <- ..2
           i <- ..3
           nm <- str_replace(mod_s, "mod_", "resids_")
-          ## print(nm)
+          print(nm)
+          print(i)
           nm2 <- str_replace(mod_s, "mod_", "valid_")
           cat(paste0(
             i, "/", total_number_of_models, " (",
@@ -976,6 +977,7 @@ get_cellmeans_posteriors <- function(dat, mod) {
   } else {
     newdata <- dat |>
       dplyr::select(Site, cYear) |>
+      mutate(Sample = NA) |> 
       droplevels()
     cm <-
       mod |>
@@ -1010,6 +1012,7 @@ get_effects_posteriors <- function(dat, mod) {
   } else {  ## site level
     newdata <- dat |>
       dplyr::select(Site, cYear) |>
+      mutate(Sample = NA) |> 
       droplevels()
     eff <-
       mod |>
