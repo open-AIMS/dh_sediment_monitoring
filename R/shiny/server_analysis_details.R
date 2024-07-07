@@ -162,9 +162,14 @@ observeEvent(input$analysis_main_scale_selector, {
 })
 
 observeEvent(input$analysis_main_zone_selector, {
+ current_var <- input$analysis_main_var_selector
+ potential_var <- select_detail(focal = "var")
+ print(current_var)
+ print(potential_var)
   updateSelectInput(session,
     "analysis_main_var_selector",
-    choices = select_detail(focal = "var")
+    choices = select_detail(focal = "var"),
+    selected = if (current_var %in% potential_var) current_var else potential_var[1]
   )
   if (input$analysis_main_var_selector %in% select_detail(focal = "var"))
     mod_value_details(select_details_data())
