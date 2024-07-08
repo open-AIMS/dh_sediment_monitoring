@@ -12,7 +12,7 @@ output$analysis_overview <- renderUI({
   ## req(effect_years_value())
   req(initial_levels_pool_overview())
   req(levels_pool_overview())
-  print(initial_levels_pool_overview())
+  ## print(initial_levels_pool_overview())
     fluidPage(
       fluidRow(
         box(
@@ -197,24 +197,24 @@ output$analysis_overview <- renderUI({
                 ##   })
                 ## )
             } else if (input$analysis_overview_scale_type_selector == "area") {
-              print(input$analysis_overview_scale_type_selector)
-              print(data |>
-                      dplyr::select(-scale) |>
-                      unnest(c(summ_e)) |>
-                      dplyr::select(scale, Area, Type, Var, Value_type, contrast, Normalised_against, change, year) |>
-                      ## filter(
-                      ##   scale == input$analysis_overview_scale_type_selector#,
-                      ##   ## Normalised_against == input$analysis_overview_normalised_type_selector,
-                      ##   ## Value_type == input$analysis_overview_value_type_selector,
-                      ##   ## year == input$analysis_overview_year_selector,
-                      ##   ## contrast == input$analysis_overview_contrast_selector
-                      ## ) |> 
-                      pull(Area) |> unique())
+              ## print(input$analysis_overview_scale_type_selector)
+              ## print(data |>
+              ##         dplyr::select(-scale) |>
+              ##         unnest(c(summ_e)) |>
+              ##         dplyr::select(scale, Area, Type, Var, Value_type, contrast, Normalised_against, change, year) |>
+              ##         ## filter(
+              ##         ##   scale == input$analysis_overview_scale_type_selector#,
+              ##         ##   ## Normalised_against == input$analysis_overview_normalised_type_selector,
+              ##         ##   ## Value_type == input$analysis_overview_value_type_selector,
+              ##         ##   ## year == input$analysis_overview_year_selector,
+              ##         ##   ## contrast == input$analysis_overview_contrast_selector
+              ##         ## ) |> 
+              ##         pull(Area) |> unique())
 
-              print(data |>
-                dplyr::select(-scale) |>
-                unnest(c(summ_e)) |>
-                dplyr::select(scale, Area, Type, Var, Value_type, contrast, Normalised_against, change, year))
+              ## print(data |>
+              ##   dplyr::select(-scale) |>
+              ##   unnest(c(summ_e)) |>
+              ##   dplyr::select(scale, Area, Type, Var, Value_type, contrast, Normalised_against, change, year))
               d <- data |>
                 dplyr::select(-scale) |>
                 unnest(c(summ_e)) |>
@@ -362,24 +362,41 @@ observeEvent(input$analysis_overview_scale_type_selector, {
 })
 
 observeEvent(input$analysis_overview_type_selector, {
+  ## print("Type triggered")
   updateSelectInput(session,
     "analysis_overview_value_type_selector",
     choices = select_dat(focal = "value_type")
   )
+  current_var <- input$analysis_overview_year_selector
+  potential_var <- select_dat(focal = "year")
+  updateSelectInput(session,
+    "analysis_overview_year_selector",
+    ## choices = select_dat(focal = "year")
+    choices = select_dat(focal = "year"),
+    selected = if (current_var %in% potential_var) current_var else potential_var[1]
+  )
 })
 observeEvent(input$analysis_overview_value_type_selector, {
+  ## print("Value_type triggered")
   updateSelectInput(session,
     "analysis_overview_normalised_type_selector",
     choices = select_dat(focal = "normalised_against")
   )
 })
 observeEvent(input$analysis_overview_normalised_type_selector, {
+  ## print("Normalisation Type triggered")
+  ## print(select_dat(focal = "year"))
+ current_var <- input$analysis_overview_year_selector
+ potential_var <- select_dat(focal = "year")
   updateSelectInput(session,
     "analysis_overview_year_selector",
-    choices = select_dat(focal = "year")
+    ## choices = select_dat(focal = "year")
+    choices = select_dat(focal = "year"),
+    selected = if (current_var %in% potential_var) current_var else potential_var[1]
   )
 })
 observeEvent(input$analysis_overview_year_selector, {
+  ## print("Year triggered")
   updateSelectInput(session,
     "analysis_overview_contrast_selector",
     choices = select_dat(focal = "contrast")

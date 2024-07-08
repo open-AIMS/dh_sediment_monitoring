@@ -19,7 +19,7 @@ output$analysis_main <- renderUI({
         width = 6,
         solidHeader = TRUE,
         column(width = 3, selectInput("analysis_main_scale_selector", "Select Scale:", choices = unique(data$scale), selected = "zone")),
-        column(width = 3, selectInput("analysis_main_zone_selector", "Select Site:", choices = unique(data$ZoneName))),
+        column(width = 3, selectInput("analysis_main_zone_selector", "Select Site:", choices = sort(unique(data$ZoneName)))),
         column(width = 3, selectInput("analysis_main_var_selector", "Select var type:", choices = unique(data$Var))),
         column(width = 3, selectInput("analysis_main_value_type_selector", "Select value type:", choices = unique(data$Value_type))),
         column(width = 3, selectInput("analysis_main_normalised_against_selector", "Normalisation type:", choices = unique(data$Normalised_against)))
@@ -74,7 +74,8 @@ select_detail <- function(focal) {
      levels_pool_details() |>
      filter(scale == current_scale) |>
      pull(ZoneName) |>
-     unique()
+     unique() |>
+     sort()
  }
  if (focal == "var") {
    temp <-
@@ -82,7 +83,8 @@ select_detail <- function(focal) {
      filter(scale == current_scale) |>
      filter(ZoneName == current_zone) |>
      pull(Var) |>
-     unique()
+     unique() |>
+     sort()
  }
  if (focal == "value_type") {
    temp <-

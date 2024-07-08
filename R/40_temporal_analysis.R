@@ -74,7 +74,7 @@ module_temporal <- function() {
     mutate(scale = "zone",
       processed_data = data) |>
     dplyr::select(-data, -effects) |>
-    full_join(spatial_lookup |>
+    left_join(spatial_lookup |>
                 dplyr::select(Area, RegionName, ZoneName) |> 
       distinct())
   
