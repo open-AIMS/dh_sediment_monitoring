@@ -1,0 +1,152 @@
+
+\usetikzlibrary{shapes,arrows,shadows,positioning,mindmap,backgrounds,decorations, calc,fit, decorations.text, decorations.pathreplacing,decorations.pathmorphing, shadings,shapes.geometric, shapes.multipart,patterns, quotes}
+
+\pgfdeclarelayer{level1}
+\pgfdeclarelayer{level2}
+\pgfsetlayers{background,level1,level2} 
+
+\tikzstyle{Labels} = [font={\fontspec[Scale=1]{ArchitectsDaughter-Regular}}]
+%% \tikzstyle{Labels} = [font={\fontspec[Scale=1]{ArchitectsDaughter}}]
+%\tikzstyle{Description} = [font={\fontspec[Scale=1]{ArchitectsDaughter}}]
+\tikzstyle{code} = [font=\ttfamily]
+\tikzstyle{Messy} = [decorate,decoration={random steps,segment length=3pt, amplitude=0.3pt},thick]
+%\tikzstyle{Messy} = []
+%\tikzstyle{Messy} = [decorate,decoration={random steps,segment length=10pt, amplitude=0.1pt},thick]
+\definecolor{Bin}{rgb}{0.9,0.9,0.2}%
+\definecolor{Docker}{rgb}{0.26,0.65,0.91}%
+\definecolor{OS}{rgb}{1,0.8,0.4}%
+\definecolor{cloud}{HTML}{89DCF0}%
+\definecolor{Push}{HTML}{0078D7}%
+
+\newcommand{\Arrow}[5] {
+ \coordinate (#5) at (#1);
+ \draw[thick, Messy, rotate around={#4:(#1)}] (#1) -- ++(0,#3*1) -- ++(#2,#3*-0.5) -- ++(0.25*#2*-0.3,#3*0.5) -- ++(0.25*#2*2,#3*-1) -- ++(0.25*#2*-2,#3*-1) -- ++(0.25*#2*0.3,#3*0.5) -- ++(0.25*#2*-4,#3*-0.5) -- ++(0,#3*1) -- cycle;
+}
+
+\begin{tikzpicture}
+[
+  node distance=0mm,
+  title/.style={font=\fontsize{8}{8}\color{black!90}\bfseries},
+  boxframe/.style={Messy, draw=black!50, inner sep=0mm, fill=white},
+]
+
+%% Most metals labels
+\begin{scope}
+  \begin{pgfonlayer}{level2}
+  \node [text width = 2.5cm, title, Messy, Labels] (most_metals_labels) {Ag, Co, Cu, Hg, Ni, Pb \& Zn};
+  \end{pgfonlayer}
+\end{scope}
+\begin{pgfonlayer}{level1}
+  \node [minimum height = 3cm, boxframe, fit={(most_metals_labels)}]
+    (most_metals_labels_box) {};
+\end{pgfonlayer}
+
+\begin{scope}
+  \begin{pgfonlayer}{level1}
+    \node [minimum height = 3cm, anchor=west, right = 0.5cm of most_metals_labels_box.east,
+      text width = 7cm, draw, Messy] (most_metals_wh_box) {};
+  \end{pgfonlayer}
+\end{scope}
+
+\begin{scope}
+  \begin{pgfonlayer}{level2}
+    \node [anchor=center, below = 0.2cm of most_metals_wh_box.north, text width = 2.5cm, title, Messy, Labels] (most_metals_wh_title) {Whole Harbour};
+    
+    \node [anchor=east, below = 0.8cm of most_metals_wh_title.south west, Labels, font=\bfseries, Labels] (most_metals_wh_less) {Fe/Al < 1.3};
+    \node [anchor=east, Labels, text=blue] at ($(most_metals_wh_less.east) +(0,-0.7cm)$) {50,000 mg/kg Al};
+    
+    \node [anchor=west, below = 0.8cm of most_metals_wh_title.south east, font=\bfseries, Labels] (most_metals_wh_more) {Fe/Al > 1.3};
+    \node [anchor=west, Labels, text=blue] at ($(most_metals_wh_more.west) +(0,-0.7cm)$) {20,000 mg/kg Fe};
+    \Arrow{$(most_metals_wh_title.south) +(0.4, -0.2)$}{0.8}{0.15}{-140}{A1};
+    \Arrow{$(most_metals_wh_title.south) +(0.1, -0.0)$}{0.8}{0.15}{-40}{A2};
+  \end{pgfonlayer}
+\end{scope}
+
+%% Vanadium
+\begin{scope}
+  \begin{pgfonlayer}{level1}
+    \node [minimum height = 2cm, text width = 2.5cm,
+      anchor=north west, draw, Messy] at ($(most_metals_labels_box.south west) +(0,-0.25cm)$) (v_box) {};
+  \end{pgfonlayer}
+\end{scope}
+\begin{scope}
+  \begin{pgfonlayer}{level2}
+  \node [anchor=center, minimum height = 2cm, align=center, below = 0cm of v_box.north, text width = 2.5cm, title, Messy, Labels] (v_labels_box) {V};
+  \end{pgfonlayer}
+\end{scope}
+
+\begin{scope}
+  \begin{pgfonlayer}{level1}
+    \node [minimum height = 2cm, anchor=west, right = 0.5cm of v_box.east,
+      text width = 7cm, draw, Messy] (v_wh_box) {};
+  \end{pgfonlayer}
+\end{scope}
+\begin{scope}
+  \begin{pgfonlayer}{level2}
+    \node [anchor=center, below = 0.2cm of v_wh_box.north, text width = 2.5cm, title, Messy, Labels] (v_wh_title) {Whole Harbour};
+    \node [anchor=north, Labels, text=blue] at ($(v_wh_title.south) +(0,-0.5cm)$) {20,000 mg/kg Fe};
+  \end{pgfonlayer}
+\end{scope}
+
+
+
+%% Arsenic
+\begin{scope}
+  \begin{pgfonlayer}{level1}
+    \node [minimum height = 3cm, text width = 2.5cm,
+      anchor=north west, draw, Messy] at ($(v_box.south west) +(0,-0.25cm)$) (as_box) {};
+  \end{pgfonlayer}
+\end{scope}
+\begin{scope}
+  \begin{pgfonlayer}{level2}
+  \node [anchor=center, minimum height = 3cm, align=center, below = 0cm of as_box.north, text width = 2.5cm, title, Messy, Labels] (as_labels_box) {As};
+  \end{pgfonlayer}
+\end{scope}
+
+\begin{scope}
+  \begin{pgfonlayer}{level1}
+    \node [minimum height = 3cm, anchor=west, right = 0.5cm of as_box.east,
+      text width = 7cm, draw, Messy] (as_wh_box) {};
+  \end{pgfonlayer}
+\end{scope}
+\begin{scope}
+  \begin{pgfonlayer}{level2}
+    \node [anchor=center, below = 0.2cm of as_wh_box.north, text width = 2.5cm, title, Messy, Labels] (as_wh_title) {};
+    
+    \node [anchor=east, below = 0.8cm of as_wh_title.south west, font=\bfseries, Labels] (as_wh_inner) {Inner Harbour};
+    \node [anchor=east, Labels, text=blue] at ($(as_wh_inner.east) +(0,-0.7cm)$) {20,000 mg/kg Fe};
+    
+    \node [anchor=west, below = 0.8cm of as_wh_title.south east, font=\bfseries, Labels] (as_wh_outer) {Outer Harbour};
+    \node [anchor=west, Labels, text=blue] at ($(as_wh_outer.west) +(0,-0.7cm)$) {Mn (i.e As/Mn ratio)};
+    \Arrow{$(as_wh_title.south) +(0.4, -0.2)$}{0.8}{0.15}{-140}{A1};
+    \Arrow{$(as_wh_title.south) +(0.1, -0.0)$}{0.8}{0.15}{-40}{A2};
+  \end{pgfonlayer}
+\end{scope}
+
+%% Hydrocarbons
+\begin{scope}
+  \begin{pgfonlayer}{level1}
+    \node [minimum height = 2cm, text width = 2.5cm,
+      anchor=north west, draw, Messy] at ($(as_box.south west) +(0,-0.25cm)$) (h_box) {};
+  \end{pgfonlayer}
+\end{scope}
+\begin{scope}
+  \begin{pgfonlayer}{level2}
+  \node [anchor=center, minimum height = 2cm, align=center, below = 0cm of h_box.north, text width = 2.5cm, title, Messy, Labels] (h_labels_box) {Hydrocarbons};
+  \end{pgfonlayer}
+\end{scope}
+
+\begin{scope}
+  \begin{pgfonlayer}{level1}
+    \node [minimum height = 2cm, anchor=west, right = 0.5cm of h_box.east,
+      text width = 7cm, draw, Messy, Labels] (h_wh_box) {};
+  \end{pgfonlayer}
+\end{scope}
+\begin{scope}
+  \begin{pgfonlayer}{level2}
+    \node [anchor=center, below = 0.2cm of h_wh_box.north, text width = 2.5cm, title, Messy, Labels] (h_wh_title) {Whole Harbour};
+    \node [anchor=north, Labels, text=blue] at ($(h_wh_title.south) +(0,-0.5cm)$) {1\% TOC};
+  \end{pgfonlayer}
+\end{scope}
+
+\end{tikzpicture}

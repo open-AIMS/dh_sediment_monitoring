@@ -18,8 +18,8 @@ format:
     ## Layout
     fig-caption-location: "bottom"
     fig-align: "center"
-    fig-width: 4
-    fig-height: 4
+    fig-width: 8
+    fig-height: 8
     fig-dpi: 72
     tbl-cap-location: top
     ## Code
@@ -34,6 +34,23 @@ format:
       echo: true
     ## Rendering
     embed-resources: true
+    fontsize: 12pt
+  pdf:
+    toc: true
+    margin-left: 2cm
+    margin-right: 2cm
+    margin-top: 2cm
+    margin-bottom: 2cm
+    fig-width: 9
+    fontsize: 8pt
+    keep-tex: true
+    header-includes:
+      - \usepackage{etoolbox}
+      - \usepackage{colortbl}
+      - \usepackage[table,xcdraw]{xcolor}
+      - \AtBeginEnvironment{longtable}{\small}
+      - \definecolor{headercolor}{RGB}{230, 230, 230}
+      - \definecolor{rowcolor}{RGB}{245, 245, 245}
 crossref:
   fig-title: '**Figure**'
   fig-labels: arabic
@@ -42,7 +59,6 @@ crossref:
 engine: knitr
 output_dir: "docs"
 documentclass: article
-fontsize: 12pt
 mainfont: Arial
 mathfont: LiberationMono
 monofont: DejaVu Sans Mono
@@ -55,6 +71,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 options(tinytex.engine = "xelatex")
 ```
 
+
 # About
 
 This document comprises the manual for the Darwin Harbour sediment
@@ -65,7 +82,7 @@ monitoring program analysis application.  It provides information on:
 - starting the application
 - progressing through the analysis pipeline
 - visualising, interpreting and extracting outputs
-
+ 
 # Structural overview
 
 [R Graphical and Statistical Environment](https://www.r-project.org/)
@@ -154,7 +171,6 @@ by user.
 #| engine: tikz
 #| fig-cap: Diagram illustrating the relationship between the code produced by the developer and the shiny docker container utilised by user with a Github cloud conduit.  The developed codebase includes a Shiny R application with R backend, `Dockerfile` (instructions used to assemble a full operating environment) and github workflow file (instructions for building and packaging the docker image on github via `actions`).
 #| file: resources/diagram.tikz 
-#| out-width: 700px
 #| echo: false
 #| eval: true
 #| engine-opts:
@@ -208,7 +224,7 @@ The task of installing and running the app is performed via a single
 **deploy script** (`deploy.bat` on Windows or `deploy.sh` on
 Linux/MacOSX/wsl). For this to work properly, the deploy script should
 be placed in a folder along with a folder (called `input`) that
-containsthe input datasets (in excel format). This structure is
+contains the input datasets (in excel format). This structure is
 illustrated below for Windows.
 
 ```
@@ -227,16 +243,438 @@ are excel files that adhere to the structure outlined in
 @sec-data-requirements.
 :::
 
+To set up the above struture:
 
+1. create a new folder on your computer in a location of your choice
+   that you are likely to remember and easily locate (e.g. on the
+   desktop). Whilst the name of the folder is not important, it is
+   recommended that it be named after the project (e.g.
+   `darwin_harbour_sediment_monitoring`).
 
+2. download the deploy script from the projects github repository
+
+   a. go to the projects github repository
+      (<https://github.com/open-AIMS/dh_sediment_monitoring.git>) in a
+      browser
+
+   b. click on either the `deploy.bat` (Windows) or 'deploy.sh`
+      (Linux/MacOSX/wsl).
+
+      ![](resources/github_deploy_script.png)
+
+   c. click on the download button and select the project folder as
+      the location to download the file to. If the file is
+      automatically downloaded to a downloads folder, move the file to
+      the project folder.
+
+      ![](resources/github_deploy_script2.png)
+
+3. within the project folder, create a folder called `inputs` and
+   place all the appropriate data sets into this `inputs` folder
+
+To run the app, navigate inside of the project folder and run
+(typically double click) on the deploy script. Upon doing so, you will
+be presented with a directory selection window that is prompting for
+the path of the project folder. Navigate to and select the project
+folder before clicking the "OK" button. Shortly thereafter, the
+application will appear in a browser tab.
+
+::: {.callout-note collapse=true}
+## More specific information about the `deploy.bat` script
+The `deploy.bat` script performs the following:
+
+1. defines paths to the project repository and local project folder
+2. checks if `docker` is installed and available from the command line
+   for the current user
+3. checks if `docker` is running
+4. query the user for the location of the project folder
+5. determine whether there are any updates to the `docker` image and
+   if so pull them down
+6. run the `docker` container
+7. open the shiny app in a browser
+:::
+
+ 
 # The Darwin Harbour Sediment Monitoring Program Analysis App
 
 {{< include ../md/instructions.md >}}
 
-## Data requirements {#sec-data-requirements}
+
+@fig-diagram2 provides a schematic overview the sequence of
+filesystem events that occur during the development, deployment and
+running of this app.
+
+1. the developed codebase is pushed to github and if necessary
+  continuous integration (github actions) is triggered. The continuous
+  integration will re-build and host a docker image as well as rebuild
+  the manual.
+2. when the client runs the `deploy.bat` (or `deploy.sh`) script, it
+   will check whether docker is running and get input from the user
+   about the location of the project directory.
+3. github will be queried
+   to discover if a new docker image is available. If so, then the new
+   image will be pulled down locally and run (if docker is runnning). 
+4. the docker container will be run and this will trigger git within
+   the container to pull down the latest version of the codebase from
+   github to a temporary repo in the container. As the container is
+   starting up, it will mount the project folder so that its contents
+   are available to the environment within container and outputs
+   produced within the container are available to the host.
+5. some of the files in the temporary repo will be copied to a folder
+   within the project folder.
+6. the shiny app will start up on `port 3838` of the localhost and
+   this will be offered to the default browser.
+7. as the shiny app progresses through each of the analysis stages,
+   more data will be added to various folders of the project
+   directory.
+
+```{r}
+#| label: fig-diagram2
+#| engine: tikz
+#| fig-cap: Diagram illustrating the sequence of filesystem events that occur during the development, deployment and running of this app.
+#| file: resources/diagram2.tikz 
+#| echo: false
+#| eval: true
+#| engine-opts:
+#|   template: "resources/tikz-standalone.tex"
+```
+
+# Analysis stages
+
+## Stage 2 - obtaining the data
+
+At the completion of this stage, the Data sidebar menu and Stage 3
+button will become active and the Data page will be populated with the
+raw data and available for review.
+
+### Read input info
+
+This task seeks to determine what data sources are available and for
+those found, stores the names and filetypes discovered. This task will
+exclusively search in the `/input` folder of the project directory.
+
+### Read input data
+
+This task will sequentially read in each sheet of each data source
+(excel file) into a nested list.
+
+### Fix dates
+
+This task will ensure that all dates are of the same format.
+Spreadsheets often store date/time data in one format and display it
+in another format. Consequently, users can be unaware that they have a
+mixture of date/time formats present in the same spreadsheet. For the
+purpose of data analysis, it is important that all date/time formats
+are consistent - this task aims to achieve this.
+
+### Validate input data
+
+This task performs data validation in accordance with the rules set
+out in the following section.
+
+#### Data requirements {#sec-data-requirements}
 
 {{< include ../md/raw_data.md >}}
 
+### Make spatial data
+
+This task will compile a set of spatial artifacts from GIS shapefiles
+of Darwin Harbour. These spatial artifacts will be used to spatially
+join the sediment data in order to assign spatial scales such as Zones
+and Areas to the data. They will also be used to facilitate mapping of
+the data. The shapefiles used in this task are built into the app. If
+there is a need to change these, please contact the app author.
+
+### Make spatial lookup
+
+This stage creates a lookup table that relates each of the spatial
+scales to one another. This lookup is used to inject the spatial
+information into the data and modelled derivatives after they are
+created and in so doing prevents the need to spatially join the data
+each time it is required.
+
+## Stage 3 - processing the data
+
+At the completion of this stage, the Stage 4 button will become active
+and the Processed Data sub-page of the Data page will be populated
+with the processed data and available for review.
+
+### Retrieve data
+
+This task literally just reads in the data stored at the end of the
+previous stage.
+
+### Apply LoRs
+
+This task applies rules for the presence of data that are below Limit
+of Reporting (LoR). In the data, LoR values are indicated by the
+presence of a `<` symbol. There are two ways available for handling
+LoR values.
+
+1. Traditionally, values that represent Limit of Reporting (LoR) were
+   replaced with half the LoR value. For example, a value of <0.02
+   would be replaced with 0.01.
+2. However, modern statistical analyses have more appropriate ways of
+   incorporating LoR information. Rather than arbitrarily replace
+   values with half the LoR, we retain their value and flag them as
+   censored and allow the statistical properties of disbutions to
+   handle them more naturally.
+
+In either case, a LoR flag is then attached to any value that was
+deemed LoR.
+
+### Pivot data
+
+This task pivots (reshapes) the data from wide to long format. Wide
+format, in which each row represents a single site/time and each
+variable is in its own column is a convenient way to assemble data
+(particularly as it permits the user to easily identify missing
+values). However, data analysis requires that each individual record
+(observation) be in its own row.
+
+### Join metadata
+
+This task joins (merges) the each of the main sediment data sheets
+(metals, hydrocarbons and total carbons) with the metadata sheet.
+
+### Make sample key
+
+This task generates a unique key to uniquely identify each individual
+record by combining information about the Site_ID, acquire date/time
+and the part of the sample ID that indicates whether or not the sample
+was a replicate or duplicate.
+
+### Collate data
+
+This task combines all the data sources (years) and types (metals,
+hydrocarbons, total carbons) together into a single data set. At the
+same time, it also creates some additional fields:
+
+- `Year_cal` a field that represents the calendar year in which the
+  sample was collected
+- `Year_fiscal` a field that represents the fiscal year in which the
+  sample was collected
+- `Year_water` a field that represents the water year (defined as 1st
+  Oct through to 30 Sept) in which the sample was collected
+- `Baseline` a field that represents whether the observation is
+  considered a "Baseline" observation or not
+- `Replicate_flag` a field that represents whether the observation is
+  a replicate
+- `Duplicate_flag` a field that represents whether the observation is
+  a duplicate
+
+### Incorporate spatial data
+
+This task uses the spatial artifacts created in the previous stage to
+add spatial information to the data. This spatial information includes
+the Zone, Area and Site that each observation belongs to.
+
+### Tidy data
+
+This task creates a new field `Site` that acts as a unique identifier
+of a sampling location over time. This field is created by copying the
+`IBSM_site` field (if it is not empty), otherwise the `Site_ID` field
+is used. This task also removes any fields that are no longer
+required.
+
+### Standardise data
+
+```{r}
+#| label: fig-standardisations
+#| engine: tikz
+#| fig-cap: Diagram illustrating the standardisation (normalisation) rules applied to each variable.  In each case, the text in blue represents the appropriate divisor used in the standardisation.
+#| file: resources/standardisations.tikz 
+#| echo: false
+#| eval: true
+#| engine-opts:
+#|   template: "resources/tikz-standalone.tex"
+```
+  
+### Create site lookup
+
+This task creates a lookup that maps sites to zones.
+
+## Stage 4 - Exploratory data analysis
+
+At the completion of this stage, the Exploratory Data Analysis menu
+and Stage 5 button will become active and the Exploratory Data
+Analysis page will be populated with the a range of exploratory
+figures. This Stage involves numerous tasks that each prepare the data
+in formats conducive to the production of the figures while navigating
+the Exploratory Data Analysis page.
+
+## Stage 5 - Temporal analysis
+
+At the completion of this stage, the Analysis menu will become active
+and the Analysis page will be populated with the a range of modelled
+outputs.
+
+The temporal analyses essentially involve the fitting of separate
+Bayesian Hierarchical models [@Gelman-2007-2007] to the full time
+series of all sites within each focal Zone. From such models (outline
+below), site and zone level modelled trends can be inferred and
+thereafter aggregated up to Area and Whole of Harbour level trends as
+well.
+
+The general form of the models employed is as follows:
+
+$$
+\begin{aligned}
+y_{i,s} &\sim{} \Gamma(\mu_{i,s}, \phi)\\
+log(\mu_{i,s}) &= (\beta_0 + \gamma_{s[i],0}) + \sum_{j=1}^nT_{[i],j}.(\beta_j + \gamma_{s[i],j]})\\
+\phi&\sim\Gamma(0.01, 0.01)\\
+\beta_0&\sim{}\mathit{t}(3, \alpha_1, \alpha_2)\\
+\beta_{[1,n]}&\sim{}\mathit{t}(3, 0, \alpha_3)\\
+\gamma_{[1..p]}&\sim{}MVN(0, \boldsymbol{\Sigma_s})\\
+\boldsymbol{\Sigma_s} &=
+{\begin{pmatrix}
+\sigma_{s_1}^2 & \rho_s \sigma_{s_1} \sigma_{s_2} & \rho_s \sigma_{s_1} \sigma_{s_3}\\
+\rho_s \sigma_{s_1} \sigma_{s_2} & \sigma_{s_2}^2 & \rho_s \sigma_{s_2} \sigma_{s_3}\\
+\rho_s \sigma_{s_1} \sigma_{s_3}  & \rho_s \sigma_{s_2} \sigma_{s_3} & \sigma_{s_3}^2
+\end{pmatrix}}\\
+\sigma_{s[1,2,3]} &\sim \mathit{t}(3, 0, \alpha_2)\\
+\rho_s &\sim \mathit{LKJcorr}(1)\\
+\end{aligned}
+$$
+
+The $i_{th}$ value ($y$) from the $s_{th}$ site was assumed to be
+drawn from a gamma ($\Gamma$) distribution parameterised by a mean
+($\mu_{i,s}$) and dispersion ($\phi$) respectively. The (natural log)
+expected means were described by a linear model that included an
+intercept ($\beta_0$), varying effects of site ($\gamma_{s,0}$) and
+annual changes in value ($\gamma_{s,j}$) as well as the population
+effects ($\beta_1$) of year ($T$). Weakly informative flat-t (3 df)
+priors were applied to the intercept and all population effect
+parameters. The values ($\alpha_1$, $alpha_2$ and $\alpha_3$) used to
+define the weakly informative priors were developed from simple
+summary statistics of the raw data. A weakly informative gamma prior
+was applied to the dispersion parameter. The varying effects were
+assumed to follow a multivariate normal with a site-specific
+covariance structure whose variances follow a weakly informative flat
+t distribution and whose correlation follows a LJK distribution with
+parameter of 1.
+
+When the data include values that are below the limit of detection,
+the model outlined above is modified so as to apply left censoring.
+
+All Bayesian models were fit using the `brms` [@brms] package within
+the R Graphical and Statistical Environment [@R-2024]. All models had
+an adaptive delta of 0.95 and had three chains, each with 5000
+no-u-turn (NUTS) iterations, a warmup of 1000 and a thinning rate of
+5.
+
+Separate models are fit to each variable, for each appropriate
+standardisation type, for each zone. At the time of writing this
+manual, this equates to nearly 300 models.
+
+### Retrieve data
+
+This task literally just reads in the data stored at the end of the
+previous stage.
+
+### Prepare data
+
+This task ensures that the data are formatted and packaged up into
+sets associated with each individual model.
+
+### Prepare priors
+
+This task is responsible for defining weakly informative priors on all
+parameters for each model. The priors associated with the model for a
+specific variable/zone were developed by taking simple summary
+statistics of the mean, median, standard deviation and median absolute
+deviation of the log of the values conditional on year.
+
+- $\alpha_1$ was taken from the median of the log values from the
+  first sampling year. This was used as the mean of the model
+  intercept ($\beta_0$) prior
+- $\alpha_2$ was taken from the maximum of the median absolute deviations of log
+  values for each sampling year. This was used as the standard
+  deviation for the model intercept ($\beta_0$) as well as the standard
+  deviation for the variances ($\sigma_s$) of the varying effects.
+- $\alpha_3$ was taken as the maximum of the difference in mean log
+  values between years and this was used to inform the standard
+  deviation of the population effect ($\beta$) priors.
+
+### Prepare model template
+
+This task essentially involves compiling a single simple model to use
+as a template for most other models. Model compilation consumes
+approximately 40 seconds of time prior to the model running. Since
+most of the models are the same (only the priors and the data differ),
+and this project requires the fitting of a very large number of
+models, the use of a pre-compiled template can speed up the overall
+modell fitting process dramatically.
+
+### Fit models
+
+This task involves fitting all combinations of the models. As each new
+model is fit, the **Model Logs* pane of the **Dashboard** page will be
+updated with a running progress (model number out of a total),
+zone/variable/standardisation name along with a message indicating
+whether the model was run or retrieved from a previous run. Each
+single model is expected to take approximately 1 minute to run
+(depending on the clock speed of the computer) so adjust your
+expectations accordingly.
+
+### Validate models
+
+This task will perform a range of model validation checks and assign
+flags against models that display sub-optimal characteristics. Similar
+to the model fitting task, the status of validation can be tracked in
+the **Model Log** pane of the **Dashboard** page. Details of the
+validations performed are given in section @sec-validation.
+
+### Compile zone results
+
+This task will extract posteriors and summaries for model derived cell
+means (estimates for each year) for each zone along with effects
+(comparisons between sets of years). With respect to the effects, the
+comparisons are:
+
+- Baseline to each subsequent year
+- Most recent year to the year prior to that
+
+The full posteriors of each of the above are stored in files to be
+accessed from the **Analysis** page.
+
+### Collect zone results
+
+This task collects file pointers across all models together into a
+single file for more convenient access in the **Data** page.
+
+### Compile site results
+
+Similar to the **Compile zone results** this task extracts posteriors
+and summaries for model derived cell means (estimates for each year)
+for each site along with effects (comparisons between sets of years).
+With respect to the effects, the comparisons are:
+
+- Baseline to each subsequent year
+- Most recent year to the year prior to that
+
+The full posteriors of each of the above are stored in files to be
+accessed from the **Analysis** page.
+
+### Collect site results
+
+This task collects file pointers across all models together into a
+single file for more convenient access in the **Data** page.
+
+### Compile area results
+
+This task aggregates the zone level posteriors together before
+re-calculating the cell means and effects.
+
+### Collect area results
+
+This task collects file pointers across all models together into a
+single file for more convenient access in the **Data** page.
+
+Finally all site, zone and area results are concatenated together into
+a single file.
+
+# App pages
 
 ## Landing page {#sec-landing}
 
@@ -248,6 +686,136 @@ are excel files that adhere to the structure outlined in
 
 ## Data {#sec-data}
 
-<span class="fas fa-circle-check"></span>
+The Data page comprises two panels or subpages accessable by tabs
+named "Raw data" and "Processed data" at the top of the page.
+
+::: {.callout-note}
+The contents of the Processed data subpage will not be revealed until
+the completion of Stage 3.
+:::
+
+
+### Raw data panel
+
+{{< include ../md/data_raw_instructions.md >}}
+
+### Processed data panel
+
+The Processed data panel displays the first 10 rows of the complete,
+compiled and processed data set. Descriptions of each field of these
+data are provided in the table below.
+
+::: {.callout-note}
+This panel will not become active until the completion of Stage 3.
+:::
+
+{{< include ../md/processed_data_instructions.md >}}
+
+Under the column (field) headings in the Processed data panel table,
+there are input boxes that act as filters. The data presented in the
+table will be refined to just those cases that match the input string
+as it is being typed. It is possible to engage with any or all of
+these filters to help refine the search.
+
+Under the table there is a **Download as csv** button. Via this
+button, you can download a comma separated text file version of the
+data in the table for further review in a spreadsheet of your choice.
+Once you click this button, you will be prompted to navigate to a
+suitable location to store the file.
+
+
+## Exploratory Data Analysis
+
+The Exploratory Data Analysis page comprises four panels or subpages
+accessable by tabs at the top of the page and named "Temporal",
+"Temporal Type", "Temporal Site" and "Spatial Type".
+
+### Temporal
+
+{{< include ../md/eda_temporal.md >}}
+
+### Temporal Type
+
+{{< include ../md/eda_temporal_type.md >}}
+
+### Temporal Site
+
+{{< include ../md/eda_temporal_site.md >}}
+
+### Spatial Type
+
+{{< include ../md/eda_spatial_type.md >}}
+
+## Analysis
+
+The Analysis page comprises three panels or subpages accessable by
+tabs at the top of the page and named "Analysis overview", "Model
+diagnostics" and "Analysis details".
+
+### Analysis overview
+
+The main feature of this panel is a table representing a very high
+level overview of the results conditional on spatial scale (Site,
+Zone, Area), Measurement Type (hydrocarbons or metals), Value Type
+(Unstandardised or Standardised), Normalisation (Standardisation)
+method, Focal Year and Contrast (each of which is controlled via a
+dropdown).
+
+{{< include ../md/temporal_analysis_overview_instructions.md >}}
+
+{{< include ../md/temporal_analysis_instructions.md >}}
+
+### Model diagnostics
+
+This panel displays a wide range of MCMC sampling and model validation
+diagnostics as well as simple model summaries.
+
+#### Model Validation {#sec-validation}
+
+##### Prior vs Posterior
+
+{{< include ../md/prior_vs_posterior.md >}}
+
+##### Traceplots
+
+{{< include ../md/traceplots.md >}}
+
+##### Autocorrelation plots
+
+{{< include ../md/acplots.md >}}
+
+##### Rhat plots
+
+{{< include ../md/rhatplots.md >}}
+
+##### Effective Sample Size
+
+{{< include ../md/essplots.md >}}
+
+##### Posterior Probability plots
+
+{{< include ../md/ppc.md >}}
+
+##### Simulated (DHARMa) residuals
+
+{{< include ../md/dharma.md >}}
+
+#### Model Summaries
+
+{{< include ../md/temporal_analysis_summary.md >}}
+
+### Analysis details
+
+This panel has two sub-panels for displaying "Modelled trends" and
+"Modelled effects".
+
+#### Modelled trends
+
+{{< include ../md/temporal_analysis_trends.md >}}
+
+#### Modelled effects
+
+{{< include ../md/temporal_analysis_effects.md >}}
 
 {{< fa thumbs-up >}} 
+ 
