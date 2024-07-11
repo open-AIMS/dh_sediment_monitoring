@@ -44,13 +44,6 @@ format:
     fig-width: 9
     fontsize: 8pt
     keep-tex: true
-    header-includes:
-      - \usepackage{etoolbox}
-      - \usepackage{colortbl}
-      - \usepackage[table,xcdraw]{xcolor}
-      - \AtBeginEnvironment{longtable}{\small}
-      - \definecolor{headercolor}{RGB}{230, 230, 230}
-      - \definecolor{rowcolor}{RGB}{245, 245, 245}
 crossref:
   fig-title: '**Figure**'
   fig-labels: arabic
