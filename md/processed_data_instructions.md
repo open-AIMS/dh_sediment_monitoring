@@ -27,5 +27,7 @@ the processing, the following new fields will be created:
 | Fe_Al_normalisation | what the sample **would be** normalised against Fe or Al (or not applicable) if it could be normalised                                                           |
 | Normalised against  | what the sample **was** normalised against (if it was normalised)                                                                                                |
 | Normalisation flag  | whether the normalisation has switched between Fe and Al over time for this site                                                                                 |
-    
+
+: {tbl-colwidths="[20,80]"} 
+   
 </div>

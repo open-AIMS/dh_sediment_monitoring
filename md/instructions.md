@@ -122,7 +122,7 @@ turn green. Grey buttons are disabled.
 Clicking on button will run that stage. Once a stage has run, the
 button will change to either green (success), yellow (orange) or red
 (failures) indicating whether errors/warnings were encountered or not.
-If the stage was completed successfully, the bottom corresponding to
+If the stage was completed successfully, the button corresponding to
 the next available stage will be activated.
 
 Sidebar menu items that are in orange font are active and clicking on

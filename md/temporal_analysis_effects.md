@@ -28,3 +28,21 @@ polarity and evidence of change via a color.
 - light green: weak evidence of a decline
 - mid green: evidence of a decline
 - dark green: strong evidence of a decline
+
+The full modelled posteriors are depicted in the figure under the
+table. The y-axis represents each of the contrasts (comparisons
+between sets of years or years and the Baseline). The posterior
+distributions are coloured according to the polarity and degree of
+evidence as outlined above.
+
+The full and summarised posteriors can be presented on either a
+**percentage** scale (default) or **fold** scale and this is
+controlled via a dropdown box above the table.
+
+- the percentage scale is interpreted as the percentage change between
+  the contrasting years. For example, percentage changes of -20, 20
+  and 0 indicate a 20% decline, 20% increase and no change
+  respectively.
+- the fold scale is interpreted as the fold change between the
+  contrasting years. For example, fold changes of 0.5, 2 and 1
+  indicate a halving, a doubling and no change respectively.

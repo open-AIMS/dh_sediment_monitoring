@@ -1,0 +1,429 @@
+\usetikzlibrary{positioning,fit,arrows,shapes,backgrounds,calc,decorations.markings}
+\pgfdeclarelayer{level1}
+\pgfdeclarelayer{level2}
+\pgfsetlayers{background,level1,level2}
+
+\begin{tikzpicture}
+[
+ node distance=0mm,
+  title/.style={font=\fontsize{10}{10}\color{black!90}\ttfamily},
+  localframe/.style={draw=black!50, inner sep=2mm, fill=black!20},
+  githubframe/.style={draw=black!50, inner sep=2mm, fill=yellow!20},
+  app/.style={font=\fontsize{8}{8}\color{black!90}\ttfamily, anchor=west},
+  typetag/.style={rectangle, draw=black!50, font=\ttfamily, anchor=west},
+  dirframe/.style={draw=black!50, inner sep=0mm, fill=white},
+  instructionframe/.style={draw=black!50, fill=orange, fill opacity=0.2, inner sep=0mm},
+  dockerdirframe/.style={rounded corners, draw=black!50, inner sep=0mm, fill=blue, fill opacity=0.1},
+  arrowtext/.style={font=\fontsize{8}{8}\color{black!90}\ttfamily},
+]
+
+%% Client before
+\begin{scope}
+  \begin{pgfonlayer}{level2}
+    \node[title, anchor=west](client-local-before){Client before starting};
+    \node [app] at ($(client-local-before.west) + (0cm, -1.5em)$)
+    (client-local-before-dir-root) {$\sim$/project};
+    \node [app] at ($(client-local-before-dir-root.west) + (0cm, -0.75em)$)
+    (client-local-before-dir-input) {|-input};
+    \node [app] at ($(client-local-before-dir-input.west) + (0cm, -0.75em)$)
+    (client-local-before-dir-data1) {|~~|-data1.xlsx};
+    \node [app] at ($(client-local-before-dir-data1.west) + (0cm, -0.75em)$)
+    (client-local-before-dir-data2) {|~~|-data2.xlsx};
+    \node [app] at ($(client-local-before-dir-data2.west) + (0cm, -0.75em)$)
+    (client-local-before-dir-dataN) {|~~|-...};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level1}
+    \node [dirframe, fit={(client-local-before-dir-root)
+        (client-local-before-dir-data2) (client-local-before-dir-dataN) }]
+    (client-local-before-dir-frame) {};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level2}
+    \node [app] at ($(client-local-before-dir-root.east) + (1cm, -0em)$)
+    (client-local-before-dir-root2) {$\sim$/Desktop};
+    \node [app] at ($(client-local-before-dir-root2.west) + (0cm, -0.75em)$)
+    (client-local-before-dir-deploy-bat) {|-deploy.bat};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level1}
+    \node [dirframe, fit={(client-local-before-dir-root2)
+        (client-local-before-dir-deploy-bat) }] (client-local-before-dir-frame2) {};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{background}
+    \node [localframe, fit={(client-local-before)
+        (client-local-before-dir-frame) (client-local-before-dir-frame2)}]
+    (client-local-before-frame) {}; 
+  \end{pgfonlayer}
+\end{scope}
+
+%% Client after running deploy.bat
+\begin{scope}[xshift = 7cm]
+  \begin{pgfonlayer}{level2}
+    \node[title, anchor=west] (client-local-after){Client after running deploy.bat};
+
+    \node [app] at ($(client-local-after.west) + (0cm, -1.5em)$)
+    (client-local-after-dir-root) {$\sim$/project};
+    \node [app] at ($(client-local-after-dir-root.west) + (0cm, -0.75em)$)
+    (client-local-after-dir-input) {|-input};
+    \node [app] at ($(client-local-after-dir-input.west) + (0cm, -0.75em)$)
+    (client-local-after-dir-data1) {|~~|-data1.xlsx};
+    \node [app] at ($(client-local-after-dir-data1.west) + (0cm, -0.75em)$)
+    (client-local-after-dir-data2) {|~~|-data2.xlsx};
+    \node [app] at ($(client-local-after-dir-data2.west) + (0cm, -0.75em)$)
+    (client-local-after-dir-dataN) {|~~|-...};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level1}
+    \node [dirframe, fit={(client-local-after-dir-root) (client-local-after-dir-data2)
+        (client-local-after-dir-dataN) }] (client-local-after-dir-frame) {};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level2}
+    \node [app] at ($(client-local-after-dir-root.east) + (1cm, -0em)$)
+    (client-local-after-dir-root2) {$\sim$/Desktop};
+    \node [app] at ($(client-local-after-dir-root2.west) + (0cm, -0.75em)$)
+    (client-local-after-dir-deploy-bat) {|-deploy.bat};
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{level1}
+    \node [dirframe, fit={(client-local-after-dir-root2)
+        (client-local-after-dir-deploy-bat) }] (client-local-after-dir-frame2) {};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level2}
+    \node [app] at ($(client-local-after-dir-root.west) + (0.0cm, -8em)$)
+    (client-docker-after-dir-root) {/home/project};
+    \node [app] at ($(client-docker-after-dir-root.west) + (0cm, -0.75em)$)
+    (client-docker-after-dir-input) {|-input};
+    \node [app] at ($(client-docker-after-dir-input.west) + (0cm, -0.75em)$)
+    (client-docker-after-dir-data1) {|~~|-data1.xlsx};
+    \node [app] at ($(client-docker-after-dir-data1.west) + (0cm, -0.75em)$)
+    (client-docker-after-dir-data2) {|~~|-data2.xlsx};
+    \node [app] at ($(client-docker-after-dir-data2.west) + (0cm, -0.75em)$)
+    (client-docker-after-dir-dataN) {|~~|-...};
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{level1}
+    \node [dockerdirframe, fit={(client-docker-after-dir-root)
+        (client-docker-after-dir-data2) (client-docker-after-dir-dataN) }]
+    (client-docker-after-dir-frame) {};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level2}
+    \node [app] at ($(client-docker-after-dir-root.east) + (0.5cm, 0em)$)
+    (client-docker-after-dir-root1) {/home/project1};
+    \node [app] at ($(client-docker-after-dir-root1.west) + (0cm, -0.75em)$)
+    (client-docker-after-dir-run) {|-run.sh};
+    \node [app] at ($(client-docker-after-dir-run.west) + (0cm, -0.75em)$)
+    (client-docker-after-dir-r) {|-R};
+    \node [app] at ($(client-docker-after-dir-r.west) + (0cm, -0.75em)$)
+    (client-docker-after-dir-various) {|~|-various.R};
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{level1}
+    \node [dockerdirframe, fit={(client-docker-after-dir-root1)
+        (client-docker-after-dir-various) }] (client-docker-after-dir-frame2) {};
+  \end{pgfonlayer}
+
+
+  \begin{pgfonlayer}{level1}
+    \node [dockerdirframe, inner sep=2mm, fit={(client-docker-after-dir-frame)
+        (client-docker-after-dir-frame2)}] (client-docker-after-frame3) {}; 
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{background}
+    \node [localframe, fit={(client-local-after) (client-docker-after-frame3)}]
+    (client-local-after-frame) {};
+  \end{pgfonlayer}
+
+\end{scope}
+
+
+%% Client after run.sh starts (during shiny)
+\begin{scope}[xshift = 16cm]
+  \begin{pgfonlayer}{level2}
+    \node[title, anchor=west] (client-local-after2){Client local during shiny};
+    \node [app] at ($(client-local-after2.west) + (0cm, -1.5em)$)
+    (client-local-after2-dir-root) {$\sim$/project};
+    \node [app] at ($(client-local-after2-dir-root.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-input) {|-input};
+    \node [app] at ($(client-local-after2-dir-input.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-data1) {|~~|-data1.xlsx};
+    \node [app] at ($(client-local-after2-dir-data1.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-data2) {|~~|-data2.xlsx};
+    \node [app] at ($(client-local-after2-dir-data2.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-dataN) {|~~|-...};
+    \node [app] at ($(client-local-after2-dir-dataN.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-run) {|-run.sh};
+    \node [app] at ($(client-local-after2-dir-run.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-r) {|-R};
+    \node [app] at ($(client-local-after2-dir-r.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-various) {|~~|-various.R};
+    \node [app] at ($(client-local-after2-dir-various.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-outputs) {|-outputs};
+    \node [app] at ($(client-local-after2-dir-outputs.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-figures) {|~~|-figures};
+    \node [app] at ($(client-local-after2-dir-figures.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-tables) {|~~|-tables};
+    \node [app] at ($(client-local-after2-dir-tables.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-data) {|-data};
+    \node [app] at ($(client-local-after2-dir-data.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-primary) {|~~|-primary};
+    \node [app] at ($(client-local-after2-dir-primary.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-processed) {|~~|-processed};
+    \node [app] at ($(client-local-after2-dir-processed.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-modelled) {|~~|-modelled};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level1}
+    \node [dirframe, fit={(client-local-after2-dir-root) (client-local-after2-dir-data2)
+        (client-local-after2-dir-dataN) (client-local-after2-dir-modelled) }]
+    (client-local-after2-dir-frame) {};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level2}
+    \node [app] at ($(client-local-after2-dir-root.east) + (1cm, -0em)$)
+    (client-local-after2-dir-root2) {$\sim$/Desktop};
+    \node [app] at ($(client-local-after2-dir-root2.west) + (0cm, -0.75em)$)
+    (client-local-after2-dir-deploy-bat) {|-deploy.bat};
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{level1}
+    \node [dirframe, fit={(client-local-after2-dir-root2)
+        (client-local-after2-dir-deploy-bat) }] (client-local-after2-dir-frame2) {};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level2}
+    \node [app] at ($(client-local-after2-dir-root.west) + (0.0cm, -16em)$)
+    (client-docker-after2-dir-root3) {/home/project};
+    \node [app] at ($(client-docker-after2-dir-root3.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-input) {|-input};
+    \node [app] at ($(client-docker-after2-dir-input.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-data1) {|~~|-data1.xlsx};
+    \node [app] at ($(client-docker-after2-dir-data1.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-data2) {|~~|-data2.xlsx};
+    \node [app] at ($(client-docker-after2-dir-data2.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-dataN) {|~~|-...};
+    \node [app] at ($(client-docker-after2-dir-dataN.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-run) {|-run.sh};
+    \node [app] at ($(client-docker-after2-dir-run.west) + (0cm, -0.75em)$) (client-docker-after2-dir-r) {|-R};
+    \node [app] at ($(client-docker-after2-dir-r.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-various) {|~~|-various.R};
+    \node [app] at ($(client-docker-after2-dir-various.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-outputs) {|-outputs};
+    \node [app] at ($(client-docker-after2-dir-outputs.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-figures) {|~~|-figures};
+    \node [app] at ($(client-docker-after2-dir-figures.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-tables) {|~~|-tables};
+    \node [app] at ($(client-docker-after2-dir-tables.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-data) {|-data};
+    \node [app] at ($(client-docker-after2-dir-data.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-primary) {|~~|-primary};
+    \node [app] at ($(client-docker-after2-dir-primary.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-processed) {|~~|-processed};
+    \node [app] at ($(client-docker-after2-dir-processed.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-modelled) {|~~|-modelled};
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{level1}
+    \node [dockerdirframe, fit={(client-docker-after2-dir-root3)
+        (client-docker-after2-dir-data2)(client-docker-after2-dir-dataN)
+        (client-docker-after2-dir-modelled) }] (client-docker-after2-dir-frame) {};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level2}
+    \node [app] at ($(client-docker-after2-dir-root3.east) + (1.5cm, 0em)$)
+    (client-docker-after2-dir-root1) {/home/project1};
+    \node [app] at ($(client-docker-after2-dir-root1.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-run) {|-run.sh};
+    \node [app] at ($(client-docker-after2-dir-run.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-r) {|-R};
+    \node [app] at ($(client-docker-after2-dir-r.west) + (0cm, -0.75em)$)
+    (client-docker-after2-dir-various) {|~|-various.R};
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{level1}
+    \node [dockerdirframe, fit={(client-docker-after2-dir-root1)
+        (client-docker-after2-dir-various) }] (client-docker-after2-dir-frame2) {};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level1}
+    \node [dockerdirframe, inner sep=2mm, fit={(client-docker-after2-dir-frame)
+        (client-docker-after2-dir-frame2)}] (client-docker-after2-frame3) {}; 
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{background}
+    \node [localframe, fit={(client-local-after2)(client-docker-after2-frame3)}]
+    (client-local-after2-frame) {}; 
+  \end{pgfonlayer}
+\end{scope}
+
+
+%% Github
+\begin{scope}[yshift=10cm, xshift=3cm]
+  \begin{pgfonlayer}{level2}
+    \node[title, anchor=east] (github){Github};
+    \node[title] at ($(github) +(0cm, -2.2em)$)
+    (github-repo) {Github repo};
+    \node [app] at ($(github-repo.west) + (0cm, -1.5em)$)
+    (github-dir-root) {/};
+    \node [app] at ($(github-dir-root.west) + (0cm, -0.75em)$)
+    (github-dir-github) {|-.github};
+    \node [app] at ($(github-dir-github.west) + (0cm, -0.75em)$)
+    (github-dir-workflows) {|~~~|-workflows};
+    \node [app] at ($(github-dir-workflows.west) + (0cm, -0.75em)$)
+    (github-dir-build) {|~~~~~|-build.yml};
+    \node [app] at ($(github-dir-build.west) + (0cm, -0.75em)$)
+    (github-dir-dockerfile) {|-Dockerfile};
+    \node [app] at ($(github-dir-dockerfile.west) + (0cm, -0.75em)$)
+    (github-dir-deploy-bat) {|-deploy.bat};
+    \node [app] at ($(github-dir-deploy-bat.west) + (0cm, -0.75em)$)
+    (github-dir-deploy-sh) {|-deploy.sh};
+    \node [app] at ($(github-dir-deploy-sh.west) + (0cm, -0.75em)$)
+    (github-dir-run-sh) {|-run.sh};
+    \node [app] at ($(github-dir-run-sh.west) + (0cm, -0.75em)$)
+    (github-dir-r) {|-R};
+    \node [app] at ($(github-dir-r.west) + (0cm, -0.75em)$)
+    (github-dir-various) {|~|-various.R};
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{level1}
+    \node [dirframe, fit={(github-dir-root) (github-dir-github)  (github-dir-workflows)
+        (github-dir-build) (github-dir-dockerfile) (github-dir-deploy-bat)
+        (github-dir-various) }] (github-dir-frame) {};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level1}
+    \node [draw=black!50, inner sep=2mm, fit={(github-repo)
+        (github-dir-frame) }] (github-frame) {}; 
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level2}
+    \node[title] at ($(github-repo.east) +(4cm, 0cm)$) (docker){Docker image};
+    \node [app] at ($(docker.west) + (0cm, -1em)$) (ubuntu--1) {- ubuntu1};
+    \node [app] at ($(ubuntu--1.west) + (0cm, -1em)$) (git) {- git};
+    \node [app] at ($(git.west) + (0cm, -1em)$) (R) {- R};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level2}
+    \node [app] at ($(R.west) + (0cm, -2em)$)
+    (docker-dir-root) {/home/project1};
+    \node [app] at ($(docker-dir-root.west) + (0cm, -0.75em)$)
+    (docker-dir-run) {|-run.sh};
+    \node [app] at ($(docker-dir-run.west) + (0cm, -0.75em)$)
+    (docker-dir-r) {|-R};
+    \node [app] at ($(docker-dir-r.west) + (0cm, -0.75em)$)
+    (docker-dir-various) {|~|-various.R};
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{level2}
+    \node [dockerdirframe, fit={(docker-dir-root) (docker-dir-run) (docker-dir-various) }]
+    (docker-dir-frame) {};
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{level1}
+    \node [dockerdirframe, inner sep=2mm, fit={(docker) (ubuntu--1)
+        (git) (R) (docker-dir-frame) }] (docker-frame) {}; 
+  \end{pgfonlayer}
+
+  \begin{pgfonlayer}{background}
+    \node [githubframe, fit={ (github) (github-frame)
+        (docker-frame) }] (github-all-frame) {};
+  \end{pgfonlayer}
+\end{scope}
+
+
+%% Run deploy.bat (instructions)
+\begin{scope}[yshift=4cm, xshift=0cm]
+  \begin{pgfonlayer}{level2}
+    \node [app] (run-batch-docker-install){1.Check docker installation};
+    \node [app] at ($(run-batch-docker-install.west) +(0, -1em)$)
+    (run-batch-docker-running){2.Check docker running};
+    \node [app] at ($(run-batch-docker-running.west) +(0, -1em)$)
+    (run-batch-dir){3.Get working directory from user};
+    \node [app] at ($(run-batch-dir.west) +(0, -1em)$)
+    (run-batch-docker-pull){4.Pull docker image};
+    \node [app] at ($(run-batch-docker-pull.west) +(0, -1em)$)
+    (run-batch-docker-run){5.Run docker container};
+    \node [app] at ($(run-batch-docker-run.west) +(0, -1em)$)
+    (run-batch-docker-browser){6.Access shiny in browser};
+    (run-batch-frame) {};
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{level1}
+    \node [instructionframe, fit={(run-batch-docker-install) (run-batch-dir)
+        (run-batch-docker-browser) }] (run-batch-frame) {};
+  \end{pgfonlayer}
+
+\end{scope}
+
+
+%% Run deploy.bat (instructions)
+\begin{scope}[yshift=4cm, xshift=7cm]
+  \begin{pgfonlayer}{level2}
+    \node [app] (run-shell-copy){1.Copy /home/project1 to /home/project};
+    \node [app] at ($(run-shell-copy.west) +(0cm, -1em)$)
+    (run-shell-pull){2.Pull git repo};
+    \node [app] at ($(run-shell-pull.west) +(0cm, -1em)$)
+    (run-shell-shiny){3.Run shiny};
+  \end{pgfonlayer}
+  \begin{pgfonlayer}{level1}
+    \node [instructionframe, fit={(run-shell-copy)
+        (run-shell-shiny) }] (run-shell-frame) {};
+  \end{pgfonlayer}
+\end{scope}
+
+%% Arrows
+\begin{pgfonlayer}{level2}
+  \draw [->] (github-dir-build.east) -- (docker-frame)
+  node [midway, above, arrowtext] {CI}
+  node [midway, below, arrowtext, draw, circle, fill=red, text=white] {1};
+
+  \draw [->] (client-local-before-dir-deploy-bat.east) -- ++(0.5cm,0) --
+  ++(0, 1.5cm) -- ++(-4cm, 0) coordinate(A1) -- ($(A1|-run-batch-frame.south)$) 
+  node [midway, arrowtext, draw, circle, fill=red, text=white] {2};
+
+  \draw[->] (client-local-after-dir-frame) -- coordinate (cp)
+  (client-docker-after-dir-frame)
+  node[midway, right, arrowtext, align=center] {mount\\volume};
+
+  \draw [->] (run-batch-docker-pull.east) -- ++(2.5cm, 0) -- ++(0cm, 2cm) -- ++(1cm, 0) coordinate(A2) --
+  node [midway, arrowtext, draw, circle, fill=red, text=white, pos=0.6] {4}
+  ($(A2|-docker-frame.south)$);
+  \draw[->] (docker-dir-frame) -- ++(0, -2.5cm) -- ++(-1cm, 0) coordinate(A3) --
+  ($(A3|-client-local-after-frame.north) +(0, 1cm)$) -- ++(8cm, 0) coordinate(A4) --
+  ($(A4|-client-docker-after-dir-frame2.north east) +(0, -0.25cm)$) -- ($(client-docker-after-dir-frame2.north east) +(0, -0.25cm)$)
+  node [midway, right, arrowtext, draw, circle, fill=red, text=white] {4}
+  (client-docker-after-dir-frame2);
+
+  \draw [->] (run-batch-docker-run.east) -- ++(2cm, 0) coordinate(A5) --
+  ($(A5|-client-local-after-frame.north) +(0, 0.5cm)$) coordinate(A5a) -- ($(client-local-after-frame.east|-A5a) +(0.5cm, 0)$) coordinate(A6) --
+  node [midway, arrowtext, draw, circle, fill=red, text=white, pos=0.9] {5}
+  ($(A6|-client-docker-after-frame3.north east)$) -- (client-docker-after-frame3.north east) ;
+
+  \draw[->] (client-docker-after2-dir-frame) -- coordinate (cp1)
+  (client-local-after2-dir-frame)
+  node[midway, left, arrowtext, align=center] {mount\\volume};
+
+  \draw[->] (client-docker-after2-dir-frame2) -- coordinate (cp1)
+  (client-docker-after2-dir-frame) node[midway, below, arrowtext, align=center] {copy};
+
+  \draw [->] (client-docker-after-dir-run.east) -- ++(3.5cm, 0) -- ++(0, 5.5cm) coordinate(A7) --
+  ($(run-shell-frame.south|-A7) +(-0cm, 0)$) --
+  (run-shell-frame)
+  node [midway, arrowtext, draw, circle, fill=red, text=white, pos=0.5] {6};
+  
+
+  %% \draw[->] (docker-dir-frame) -- ++(0, -2.5cm) -- 
+  %% (client-docker-after2-dir-frame2);
+
+  \draw[->] (github-dir-frame) -- ++(0, -2.5cm) -- ++(-3cm, 0cm) coordinate(A8) --
+  ($(A8|-client-docker-after2-dir-frame.west)$) --
+  (client-docker-after2-dir-frame);
+
+
+  \draw [-] (run-batch-docker-run.east) --++(2cm, 0) --
+  ($(A5|-cp.west) +(0, 0cm)$) -- (cp)
+  node [midway, right, arrowtext, draw, circle, fill=red, text=white, pos=0.5] {3};
+
+
+  \draw [->] (run-shell-copy) to[out=0, in = 90]
+  node [midway, arrowtext, draw, circle, fill=red, text=white, pos=0.8] {7}
+  (cp1.north);
+\end{pgfonlayer}
+
+%\draw[->] (client-local-after-dir-frame) -- coordinate (cp) (client-docker-after-dir-frame) node[midway, left, arrowtext, align=center] {mount\\volume} node [midway, right, arrowtext, draw, circle, fill=red, text=white, pos=0.2] {3};
+\end{tikzpicture}

@@ -24,6 +24,8 @@ fields listed in their respective tables):
     | Sample_ID | unique sample ID                                                                     | must contain characters                              |
     | >C*¹        | observed concentration of hydrocarbons within a specific size bin in sediment sample | must contain only numbers or start with a '<' symbol |
     
+    : {tbl-colwidths="[10,50,40]"} 
+    
     1: where the '*' represents a string of characters defining the
     size bin (such as '10 _C16'). There should be numerous of these
     fields </div>
@@ -37,6 +39,7 @@ fields listed in their respective tables):
     | Sample_ID | unique sample ID                                                     | must contain characters                              |
     | TOC (%)   | observed total organic carbon (as a percentage of the sample weight) | must contain only numbers |
    
+    : {tbl-colwidths="[10,50,40]"} 
    
     </div>
 
@@ -58,9 +61,15 @@ fields listed in their respective tables):
     | Baseline_site              | the unique site ID of the corresponding baseline sample              | must contain characters (cannot be blank) |
     | Baseline_acquire_date_site | the date and time of the corresponding baseline sample               | must be in datetime format                |
   
+    : {tbl-colwidths="[25,35,40]"} 
   
     </div>
 
   - notes - this sheet is not processed or validated
+
+::: {.callout-note}
+All input data must be placed in the `/input` folder of the Project
+prior to starting the app.
+:::
 
 

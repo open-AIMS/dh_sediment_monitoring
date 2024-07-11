@@ -33,18 +33,19 @@ the _focal_ Sheet of the **Data** and **Validation** tabs:
   places, yet the actual underlying data is full resolution.
   
 - the table in the **Validation** tab displays more details about
-  which fields or rows of the _focal_ Sheet that failed validation
-  tests.
+  which fields or rows of the _focal_ Sheet failed validation tests.
   
   If there were no validation issues, this table will be empty.
   Otherwise, the description field will indicate the nature of the
   violation and in the case of issues with an individual record, the
   offending row will be presented across the remaining cells in the
   row. For more information about the validation tests, please refer
-  to the **Data requirements** box (to the right of this box).
+  to the **Data requirements** box (to the right of this box in the
+  app).
 
 Underneath both the Data and Validation tables, there is a **Download
 as csv** button. Via this button, you can download a comma separated
 text file version of the data in the table for further review in a
-spreadsheet. Once you click this button, you will be prompted to
-navigate to a suitable location to store the file.
+spreadsheet of your choice. Once you click this button, you will be
+prompted to navigate to a suitable location to store the file.
+

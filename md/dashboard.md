@@ -4,15 +4,15 @@ represent an action performed in furtherance of the analysis and of
 which there are reportable diagnostics. For example, once the
 application loads, the first Stage of the pipeline is to prepare the
 environment. The first Task in this Stage is to load the necessary R
-packages used by the codebase. Whilst this technically, this action
+packages used by the codebase. Whilst technically, this action
 consists of numerous R calls (one for each package that needs to be
 loaded), the block of actions are evaluated as a set.
 
-Initially, all tasks are reported as "pending" (<span class="fas
-fa-clock"></span>). As the pipeline progresses, each Task is evaluated
-and a status is returned as either "success" (<span class="fas
-fa-circle-check"></span>) or "failure" (<span class="fas
-fa-circle-xmark"></span>). 
+Initially, all upcoming tasks are reported as "pending" (<span
+class="fas fa-clock"></span>). As the pipeline progresses, each Task
+is evaluated and a status is returned as either "success" (<span
+class="fas fa-circle-check"></span>) or "failure" (<span class="fas
+fa-circle-xmark"></span>).
 
 The Stage that is currently (or most recently) being run will be
 expanded, whereas all other Stages will be collapsed (unless they
@@ -20,7 +20,7 @@ contain errors). It is also possible to expand/collapse a Stage by
 double clicking on its title (or the small arrow symbol at the left
 side of the tree).
 
-As the pipeline progresses, Task logs are written to a log_file and
+As the pipeline progresses, Task logs are written to a log file and
 echoed to the **Logs** panel. Each row represents the returned status
 of a specific Task and are formatted as:
 
@@ -37,7 +37,7 @@ of a specific Task and are formatted as:
   useful for helping to diagnose the source and cause of issues.
   
 The Logs in the Log panel are presented in chronological order and
-will autoscroll such that the most recent log is at the bottom of th e
+will autoscroll such that the most recent log is at the bottom of the
 display. If the number of Log lines exceeds 10, a scroll bar will
 appear on the right side of the panel to help reviewing earlier Logs.
 
@@ -46,6 +46,10 @@ The Status and Logs are
 completely refreshed each time the application is restarted. 
 </div>
 
-The Progress panel also has a tab (called **Terminal-like**) also has
+The Progress panel also has a tab (called **Terminal-like**) which provides
 an alternative representation of the status and progress of the
 pipeline.
+
+Under the **Logs** panel, there is a **Model Logs** panel. This panel
+provides additional status and progress about the fitting and
+processing of individual statistical models.

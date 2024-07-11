@@ -9,7 +9,7 @@ many statistical models, discerning genuinely violation-indicating
 patterns in residuals from artifacts due to the model type can be
 really difficult - if not impossible.  
 
-Within R, the _DHARMa_ (Diagnostics for HierArchical Regression Models)
+Within R, the _DHARMa_ (Diagnostics for HierArchical Regression Models: @DHARMa)
 package generates standardised residuals via simulation and uses these
 as the basis of a range of tools to diagnose common modelling issues
 including outliers, heterogeneity, over-dispersion, autocorrelation.
