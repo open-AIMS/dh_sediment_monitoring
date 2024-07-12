@@ -52,9 +52,6 @@ crossref:
 engine: knitr
 output_dir: "docs"
 documentclass: article
-mainfont: Arial
-mathfont: LiberationMono
-monofont: DejaVu Sans Mono
 classoption: a4paper
 bibliography: resources/references.bib
 ---
