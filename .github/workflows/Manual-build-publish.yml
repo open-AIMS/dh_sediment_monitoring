@@ -61,8 +61,6 @@ jobs:
       - run: |
           tlmgr --version
           tlmgr update --self
-          fc-cache -fv
-          fc-list
 
       - name: Install additional LaTeX packages
         run: |
