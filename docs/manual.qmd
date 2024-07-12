@@ -52,6 +52,9 @@ crossref:
 engine: knitr
 output_dir: "docs"
 documentclass: article
+mainfont: Arial
+mathfont: LiberationMono
+monofont: DejaVu Sans Mono
 classoption: a4paper
 bibliography: resources/references.bib
 ---
@@ -60,6 +63,7 @@ bibliography: resources/references.bib
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 options(tinytex.engine = "xelatex")
 ```
+
 
 # About
 
@@ -806,5 +810,7 @@ This panel has two sub-panels for displaying "Modelled trends" and
 
 {{< include ../md/temporal_analysis_effects.md >}}
 
-{{< fa thumbs-up >}} 
- 
+<!--
+can this be inline {{< fa thumbs-up >}} a [{{< fa check-circle >}}]{style="color:red"}
+\textcolor{red}{<span style="color:red">{{< fa check-circle >}}</span>}
+-->
