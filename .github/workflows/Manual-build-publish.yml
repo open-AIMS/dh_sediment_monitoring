@@ -58,9 +58,7 @@ jobs:
 
       - name: install tinytex
         uses: r-lib/actions/setup-tinytex@v2
-      - run: |
-          tlmgr --version
-          tlmgr update --self
+      - run: tlmgr --version
 
       - name: Install additional LaTeX packages
         run: |
