@@ -35,6 +35,7 @@ jobs:
         run: |
           sudo apt-get install ttf-mscorefonts-installer
           fc-cache -fv
+          fc-list -v | grep -i arial
 
       - name: Checkout repository
         uses: actions/checkout@v4
