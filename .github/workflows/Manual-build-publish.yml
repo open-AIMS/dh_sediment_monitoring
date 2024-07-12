@@ -30,6 +30,7 @@ jobs:
           fc-cache -fv
           fc-list
           fc-list -v | grep -i archi
+          
       - name: Install MS core fonts
         run: |
           sudo apt-get install ttf-mscorefonts-installer
