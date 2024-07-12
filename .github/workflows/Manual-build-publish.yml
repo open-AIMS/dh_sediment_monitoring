@@ -58,7 +58,7 @@ jobs:
 
       - name: install tinytex
         uses: r-lib/actions/setup-tinytex@v2
-      - run:
+      - run: |
           tlmgr --version
           tlmgr update --self
           fc-cache -fv
