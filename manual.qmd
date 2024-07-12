@@ -64,7 +64,6 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 options(tinytex.engine = "xelatex")
 ```
 
-
 # About
 
 This document comprises the manual for the Darwin Harbour sediment

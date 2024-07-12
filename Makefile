@@ -22,4 +22,4 @@ all: $(HTML_FILES)
 $(HTML_DIR)/%.html: $(DOCS_SRC_DIR)/%.qmd
 	@echo "Compiling documntation for analyses"
 	$(info Source = $<; Destination = $@)
-	quarto render $<
+	quarto render $< --to=html,pdf
