@@ -319,7 +319,7 @@ fit_models <- function(data) {
              norm_against_str 
             ))
           )
-          print(nm)
+          ## print(nm)
           cat(paste0(
             i, "/", total_number_of_models, " (",
             sprintf("% 3.1f%%", 100 * (i / total_number_of_models)), "): ",
@@ -630,8 +630,8 @@ validate_models <- function(data) {
           l_d <- ..2
           i <- ..3
           nm <- str_replace(mod_s, "mod_", "resids_")
-          print(nm)
-          print(i)
+          ## print(nm)
+          ## print(i)
           nm2 <- str_replace(mod_s, "mod_", "valid_")
           cat(paste0(
             i, "/", total_number_of_models, " (",

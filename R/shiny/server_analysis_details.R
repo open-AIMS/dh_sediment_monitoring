@@ -166,8 +166,8 @@ observeEvent(input$analysis_main_scale_selector, {
 observeEvent(input$analysis_main_zone_selector, {
  current_var <- input$analysis_main_var_selector
  potential_var <- select_detail(focal = "var")
- print(current_var)
- print(potential_var)
+ ## print(current_var)
+ ## print(potential_var)
   updateSelectInput(session,
     "analysis_main_var_selector",
     choices = select_detail(focal = "var"),
