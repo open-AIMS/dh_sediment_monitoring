@@ -35,6 +35,9 @@ format:
     ## Rendering
     embed-resources: true
     fontsize: 12pt
+    mainfont: Arial
+    mathfont: LiberationMono
+    monofont: DejaVu Sans Mono
   pdf:
     toc: true
     margin-left: 2cm
@@ -52,9 +55,6 @@ crossref:
 engine: knitr
 output_dir: "docs"
 documentclass: article
-mainfont: Arial
-mathfont: LiberationMono
-monofont: DejaVu Sans Mono
 classoption: a4paper
 bibliography: resources/references.bib
 ---
