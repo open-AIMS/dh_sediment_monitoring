@@ -509,6 +509,127 @@ below), site and zone level modelled trends can be inferred and
 thereafter aggregated up to Area and Whole of Harbour level trends as
 well.
 
+::: {.callout-note}
+### Bayesian hierarchical models
+Hierarchical models are used to analyse data that are structured such
+that there are sampling units nested within higher order units in a
+hierarchical manner. For example, if there are multiple sampling
+stations within each sampling site and there are multiple sites within
+each region, then we can describe the sampling design as being nested
+or hierarchical. Such designs usually provide greater statistical
+power (ability to detect effects when they occur) for a given sampling
+effort by reducing sources of unexplained variability. However, such
+designs must also be analysed carefully to avoid psuedo-replication
+(e.g. when subsamples are elevated to the status of full samples,
+thereby erroneously increasing statistical power) and confounding. For
+example, observations collected from multiple stations are not
+independent of one another at higher spatial scales (that is, the
+observations collected at the stations within one site are going to be
+more similar to one another than they are to the observations
+collected at stations within another site. Such dependencies
+structures must be carefully considered in order to yield reliable
+model outcomes. Similarly, repeated sampling within a location will
+also yield non-independent observations.
+
+Unlike traditional _frequentist_ methods, in which probability is
+calculated as the expected long-run chance of obtaining the observed
+data and thereby pertaining only to the extremity of the data, in
+_Bayesian_ methods, probability pertains directly to the underlying
+parameters and hypotheses of interest. Rather than generating point
+estimates or p-values (which are themselves commonly missused and
+missunderstood), Bayesian methods offer more intuitive, probabilistic
+interpretations of results, such as the probability that certain
+effects or events occur. Bayesian methods can also incorporate prior
+beliefs about the parameters, which can be particularly useful when
+data are sparse or noisy.
+
+Hence, Bayesian statistics offers a flexible and comprehensive toolkit
+for making inferences and predictions, handling uncertainty, and
+incorporating expert knowledge into the analysis of data and provide
+intuitive interpretations that relate directly to the underlying
+scientific or management questions and that are accessable to a broad
+audience.
+
+In essence, frequentist statistics calculates the probability of the
+data given a hypothesis ($P(D|H)$) - this is why frequentist
+conclusions pertain to the data and not directly to the hypotheses.
+Arguably, it would be more useful to express statistical outcomes as
+the probability of hypotheses given the available data ($P(H|D)$).
+**Bayes' Rule** is a fundamental principle in probability theory that
+describes the conditional relationship between these two and outlines
+how the later can be obtained from the former. It calculates the
+probability of a hypothesis given observed evidence ($P(H|D)$ - the
+_posterior probability_ of the hypothesis) by combining the likelihood
+of the observed evidence five the hypothesis ($P(D|H)$), the _prior_
+probability (belief) of the hypothesis (before seeing the evidence,
+$P(H)$), and the overall probability of observing the evidence under
+any hypothesis ($P(D)$) according to the following:
+
+$$
+P(H|D) = \frac{P(D|H).P(H)}{P(D)}
+$$
+
+The seeming simplicity of the above conditional probability equation
+belies the underlying intractability for all but the most trivial of
+use cases. In order for $P(H|D)$ to be a probability distribution (and
+thus useful for drawing conclusions), it is necessary that the area
+under the distribution must add up to exactly 1. This is the job of
+the divisor in the equation above - to act as a normalising constant.
+Unfortunately, in most cases, it is not possible to calculate this
+normalising constant. It is for this reason that Bayesian statistics
+(which actually predated frequentist statistics) remained dormant for
+more than a century.
+
+The advent of modern computing along with the cleaver application of a
+couple of mathematical techniques has since revised Bayesian
+statistics. Rather than attempt to calculate the normalising constant,
+modern Bayesian techniques aim to reconstruct the unknown posterior
+distribution ($P(H|D)$) by repeatedly sampling from the product of
+$P(D|H)$ and $P(H)$. This technique, Markov Chain Monte Carlo (MCMC)
+provides a powerful and flexible way to estimate the posterior
+distributions of model parameters, especially when these distributions
+are complex and cannot be solved analytically.
+
+Following is a high-level overview of the general MCMC sampling:
+
+1. The process begins with an initial estimate of the parameters based on
+   prior knowledge or assumptions.
+
+2. MCMC then generates a series of estimates, or "draws," for each
+   parameter. Each new estimate is made based on the previous one,
+   creating a chain. The way each new estimate is made ensures that, over
+   time, more probable estimates are chosen more often than less
+   probable ones.
+
+3. With each estimate, the model evaluates how well it explains the
+   observed data, using the likelihood of the data given the
+   parameters. It also considers the prior belief about the
+   parameters. This combination of data fit and prior belief guides
+   the process toward more probable parameter values.
+
+4. Initially, the estimates might be far off, but as the chain
+   progresses, it starts to settle into a pattern. This pattern
+   represents the posterior distribution of the parameters - a
+   probability distribution that reflects both the observed data and
+   the prior information.
+
+5. After a pre-defined number of steps (assuming the chain has reached
+   equilibrium), the draws are considered to be representative of the
+   posterior distribution. These draws allow us to estimate the
+   parameters, their uncertainties, and any other quantities of
+   interest.
+
+6. Since the purpose of MCMC sampling is to reconstruct an otherwise
+   unknown posterior distribution, it's crucial to check that the
+   chain has fully explored and reconstructed the entire distribution.
+   Typically, the MCMC process involves running multiple chains with
+   different starting points and ensuring they all converge to the
+   same distribution.
+
+
+:::
+
+
 The general form of the models employed is as follows:
 
 $$
@@ -757,6 +878,10 @@ dropdown).
 {{< include ../md/temporal_analysis_overview_instructions.md >}}
 
 {{< include ../md/temporal_analysis_instructions.md >}}
+
+#### Downloading modelled outputs
+
+{{< include ../md/temporal_analysis_downloads.md >}}
 
 ### Model diagnostics
 

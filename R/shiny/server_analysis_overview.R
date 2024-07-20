@@ -259,7 +259,30 @@ output$analysis_overview <- renderUI({
             d
           })
         )
-      )
+      ),
+      fluidRow(
+        box(
+          title = "Download instructions",
+          status = "info",
+          width = 12,
+          solidHeader = TRUE,
+          htmltools::includeMarkdown("../md/temporal_analysis_downloads.md"),
+          )
+      ),
+      fluidRow(
+        box(
+          width = 12,
+          p("Download modelled effects data:"),
+          downloadButton("download_modelled_data_effects", "Download effects as csv"),
+          )
+      ),
+      fluidRow(
+        box(
+          width =  12,
+          p("Download modelled cellmeans data (Note, it may take a few minutes for this routine to compile and summarise all the data before a dialog box is presented to you - please be patient):"),
+          downloadButton("download_modelled_data_cellmeans", "Download trends as csv"),
+          ),
+        )
     )
 })
 
@@ -402,4 +425,66 @@ observeEvent(input$analysis_overview_year_selector, {
     choices = select_dat(focal = "contrast")
   )
 })
+
+
+output$download_modelled_data_effects <- downloadHandler(
+  filename = function() {
+    # Use the selected dataset as the suggested file name
+    paste0("modelled_data_effects_", today(), ".csv")
+  },
+  content = function(file) {
+    site_spatial <- readRDS(paste0(data_path, "processed/data.RData")) |>
+      dplyr::select(Site, Latitude, Longitude) |>
+      distinct() |>
+      group_by(Site) |>
+      summarise(Longitude = mean(Longitude), Latitude = mean(Latitude)) |>
+      ungroup()
+    # Write the dataset to the `file` that will be downloaded
+    modelled_data <- analysis_data()
+    modelled_data <- modelled_data |>
+      dplyr::select(
+        ZoneName, Site, Type, Var, Value_type, Normalised_against,
+        summ_e
+      ) |>
+      unnest(c(summ_e)) |>
+      left_join(site_spatial)
+    write.csv(modelled_data, file)
+  }
+)
+
+output$download_modelled_data_cellmeans <- downloadHandler(
+  filename = function() {
+    # Use the selected dataset as the suggested file name
+    paste0("modelled_data", ".csv")
+  },
+  content = function(file) {
+    site_spatial <- readRDS(paste0(data_path, "processed/data.RData")) |>
+      dplyr::select(Site, Latitude, Longitude) |>
+      distinct() |>
+      group_by(Site) |>
+      summarise(Longitude = mean(Longitude), Latitude = mean(Latitude)) |>
+      ungroup()
+    # Write the dataset to the `file` that will be downloaded
+    modelled_data <- analysis_data()
+    modelled_data <- modelled_data |>
+      dplyr::select(
+        ZoneName, Site, Type, Var, Value_type, Normalised_against,
+        nm_cm
+      ) |>
+      mutate(post_e = map(
+        .x = nm_cm,
+        .f = ~ {
+          if (is.null(.x)) return(NULL)
+          .x |>
+            readRDS() |>
+            get_cellmeans_summ() |>
+            mutate(across(c(median, lower, upper), ~ round(.x, 3)))
+          }
+      )) |> 
+      dplyr::select(-nm_cm) |> 
+      unnest(c(post_e)) |> 
+      left_join(site_spatial)
+    write.csv(modelled_data, file)
+  }
+)
 
