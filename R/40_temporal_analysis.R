@@ -486,6 +486,10 @@ make_contrasts_baseline_vs_years <- function(dat) {
       ##                Baseline &
       ##                cYear == max(as.character(df[df$Baseline == TRUE, ]$cYear)))
     ## })()
+    ## This is the newer version.  If there are multiple baseline years, keep only the most recent
+    d <- d |>
+      arrange(cYear) |>
+      mutate(Baseline = ifelse(Baseline | (cYear == last(cYear) & all(!Baseline)), TRUE, FALSE))
   }
   d <- d |> 
     mutate(BaselineYear = interaction(Baseline, cYear)) |>
@@ -582,6 +586,10 @@ make_contrasts_baseline_and_years <- function(dat) {
       ##                Baseline &
       ##                cYear == max(as.character(df[df$Baseline == TRUE, ]$cYear)))
       ## })() 
+    ## This is the newer version.  If there are multiple baseline years, keep only the most recent
+    d <- d |>
+      arrange(cYear) |>
+      mutate(Baseline = ifelse(Baseline | (cYear == last(cYear) & all(!Baseline)), TRUE, FALSE))
   }
   d <- d |> 
     mutate(BaselineYear = interaction(Baseline, cYear)) |>
