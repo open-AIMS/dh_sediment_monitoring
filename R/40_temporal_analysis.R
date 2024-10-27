@@ -80,6 +80,7 @@ module_temporal <- function() {
   
 
   ## Site level effects
+  data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
   data_site <- compile_posteriors(data, scale = "site")
   data_site <- collect_results(data_site, scale = "site")
   saveRDS(data_site, file = paste0(data_path, "modelled/data_site.RData"))
@@ -463,17 +464,28 @@ make_contrasts_baseline_vs_years <- function(dat) {
   if (unique(dat$scale) == "zone") {   # zone level - these must fix the baseline to 2019-2020
     d <- dat |>
       dplyr::select(cYear, Baseline) |>
+      ## Baseline can only be 2019-2020
+      mutate(Baseline = ifelse(Baseline & cYear %in% c(2019, 2020), TRUE, FALSE)) |>
       distinct() |>
       filter(!Baseline | Baseline & cYear %in% c(2019, 2020))
+    ## if after that, there is no baseline, then add it (in order to
+    ## prevent a downstream error). Note, although this is fine for
+    ## this specific zone, it will be missleading when all the zones
+    ## are aggregated together, since the baselines will not be the
+    ## same. If essentially make sure there is at lease one baseline
+    d <- d |>
+      arrange(cYear) |>
+      mutate(Baseline = ifelse(Baseline | (cYear == first(cYear) & all(!Baseline)), TRUE, FALSE))
   } else {  # site level - these contrasts can use the actual baselines
     d <- dat |>
       dplyr::select(cYear, Baseline) |>
-      distinct() |>
-      (function(df) {
-        filter(df, !Baseline |
-                     Baseline &
-                     cYear == max(as.character(df[df$Baseline == TRUE, ]$cYear)))
-      })() 
+      distinct() ## |>
+    ## Again, not sure why this is desirable
+      ## (function(df) {
+      ##   filter(df, !Baseline |
+      ##                Baseline &
+      ##                cYear == max(as.character(df[df$Baseline == TRUE, ]$cYear)))
+    ## })()
   }
   d <- d |> 
     mutate(BaselineYear = interaction(Baseline, cYear)) |>
@@ -545,19 +557,31 @@ make_contrasts_baseline_and_years <- function(dat) {
   if (unique(dat$scale) == "zone") {# zone level - these must fix the baseline to 2019-2020
     d <- dat |>
       dplyr::select(cYear, Baseline) |>
+      ## Baseline can only be 2019-2020
+      mutate(Baseline = ifelse(Baseline & cYear %in% c(2019, 2020), TRUE, FALSE)) |>
       distinct() |>
       filter(!Baseline | Baseline & cYear %in% c(2019, 2020)) |>
       mutate(BaselineYear = interaction(Baseline, cYear)) |>
-      mutate(B = ifelse(Baseline, as.character(Baseline), as.character(cYear))) 
+      mutate(B = ifelse(Baseline, as.character(Baseline), as.character(cYear)))
+    ## if after that, there is no baseline, then add it (in order to
+    ## prevent a downstream error). Note, although this is fine for
+    ## this specific zone, it will be missleading when all the zones
+    ## are aggregated together, since the baselines will not be the
+    ## same. If essentially make sure there is at lease one baseline
+    d <- d |>
+      arrange(cYear) |>
+      mutate(Baseline = ifelse(Baseline | (cYear == first(cYear) & all(!Baseline)), TRUE, FALSE))
   } else {# site level - these contrasts can use the actual baselines
     d <- dat |>
       dplyr::select(cYear, Baseline) |>
-      distinct() |>
-      (function(df) {
-        filter(df, !Baseline |
-                     Baseline &
-                     cYear == max(as.character(df[df$Baseline == TRUE, ]$cYear)))
-      })() 
+      distinct()##  |>
+    ## The following removed cases where there were multiple baseline years, keeping only the
+    ## most recent baseline year.  Not sure why this would be desirable.
+      ## (function(df) {
+      ##   filter(df, !Baseline |
+      ##                Baseline &
+      ##                cYear == max(as.character(df[df$Baseline == TRUE, ]$cYear)))
+      ## })() 
   }
   d <- d |> 
     mutate(BaselineYear = interaction(Baseline, cYear)) |>
@@ -981,7 +1005,7 @@ get_cellmeans_posteriors <- function(dat, mod) {
       droplevels()
     cm <-
       mod |>
-      posterior_linpred(newdata = newdata) |>
+      posterior_linpred(newdata = newdata, allow_new_levels = TRUE) |>
       as.matrix() %*% cmat |>
       exp() |>
       as_tibble() |>
@@ -1016,7 +1040,7 @@ get_effects_posteriors <- function(dat, mod) {
       droplevels()
     eff <-
       mod |>
-      posterior_linpred(newdata = newdata) |>
+      posterior_linpred(newdata = newdata, allow_new_levels = TRUE) |>
       as.matrix() %*% cmat |>
       exp() |>
       as_draws_df() |>
