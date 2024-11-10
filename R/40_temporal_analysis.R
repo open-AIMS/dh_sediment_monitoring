@@ -192,15 +192,19 @@ prepare_formula <- function(data) {
           nYrs <- length(unique(.x$Year))
           if (nYrs > 1) {
             if (any(.x$lor_flag) & !all(.x$lor_flag)) {
-              form <- bf(Values | cens(cens_lor) ~ cYear + (cYear | Site), family = Gamma(link = "log"))
+              ## form <- bf(Values | cens(cens_lor) ~ cYear + (cYear | Site), family = Gamma(link = "log"))
+              form <- bf(Values | cens(cens_lor) ~ cYear + (cYear | Site), family = gaussian(link = "log"))
             } else {
-              form <- bf(Values ~ cYear + (cYear | Site), family = Gamma(link = "log"))
+              ## form <- bf(Values ~ cYear + (cYear | Site), family = Gamma(link = "log"))
+              form <- bf(Values ~ cYear + (cYear | Site), family = gaussian(link = "log"))
             }
           } else {
             if (any(.x$lor_flag) & !all(.x$lor_flag)) {
-              form <- bf(Values | cens(cens_lor) ~ 1 + (1 | Site), family = Gamma(link = "log"))
+              ## form <- bf(Values | cens(cens_lor) ~ 1 + (1 | Site), family = Gamma(link = "log"))
+              form <- bf(Values | cens(cens_lor) ~ 1 + (1 | Site), family = gaussian(link = "log"))
             } else {
-              form <- bf(Values ~ 1 + (1 | Site), family = Gamma(link = "log"))
+              ## form <- bf(Values ~ 1 + (1 | Site), family = Gamma(link = "log"))
+              form <- bf(Values ~ 1 + (1 | Site), family = gaussian(link = "log"))
             }
           }
           if (any(.x$Replicate_flag) | any(.x$Duplicate_flag)) {
