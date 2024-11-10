@@ -235,8 +235,8 @@ prepare_priors <- function(data) {
           int_sd <- max(1, round(dat_sum[1, "lValues_sd"], 2)[[1]])
           sd_sd <- max(1, round(mean(dat_sum[, "lValues_sd"][[1]]), 2)[[1]], na.rm = TRUE)
           priors <- prior_string(paste0("student_t(3, ", int_mu, ", ", int_sd, ")"), class = "Intercept") +
-            prior_string(paste0("student_t(3, 0, ", sd_sd, ")"), class = "sd", coef = "Intercept", group = "Site") +
-            prior(gamma(0.01, 0.01), class = "shape")
+            prior_string(paste0("student_t(3, 0, ", sd_sd, ")"), class = "sd", coef = "Intercept", group = "Site") ## +
+            ## prior(gamma(0.01, 0.01), class = "shape")
           if (nrow(dat_sum) > 1) {
             b_sd <- max(1, round(abs(max(diff(dat_sum[, "lValues_mean"][[1]]))), 2))
             priors <- priors + prior_string(paste0("student_t(3, 0, ", b_sd, ")"), class = "b") 
