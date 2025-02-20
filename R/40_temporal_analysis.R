@@ -35,9 +35,13 @@ module_temporal <- function() {
   ## Prepare data - add the replicate and duplicate stuff in to prepare_data()
   data <- data |> prepare_data()
   ## Prepare formula
-  data <- data |> prepare_formula()
+  data <- data |> prepare_formula(family = "lognormal")
+  ## data <- data |> prepare_formula(family = "gaussian")
+  ## data <- data |> prepare_formula(family = "gamma")
   ## Prepare priors
-  data <- data |> prepare_priors()
+  data <- data |> prepare_priors(family = "lognormal")
+  ## data <- data |> prepare_priors(family = "gaussian")
+  ## data <- data |> prepare_priors(family = "gamma")
   ## Prepare model template
   data <- data |> prepare_model_template()
   ## Fit models
@@ -182,7 +186,7 @@ prepare_data <- function(data) {
   )
 }
 
-prepare_formula <- function(data) {
+prepare_formula <- function(data, family = "gamma") {
   status::status_try_catch(
   {
     data |>
@@ -192,19 +196,39 @@ prepare_formula <- function(data) {
           nYrs <- length(unique(.x$Year))
           if (nYrs > 1) {
             if (any(.x$lor_flag) & !all(.x$lor_flag)) {
-              ## form <- bf(Values | cens(cens_lor) ~ cYear + (cYear | Site), family = Gamma(link = "log"))
-              form <- bf(Values | cens(cens_lor) ~ cYear + (cYear | Site), family = gaussian(link = "log"))
+              if (family == "gamma") {
+                form <- bf(Values | cens(cens_lor) ~ cYear + (cYear | Site), family = Gamma(link = "log"))
+              } else if (family == "gaussian") {
+                form <- bf(Values | cens(cens_lor) ~ cYear + (cYear | Site), family = gaussian(link = "log"))
+              } else {
+                form <- bf(Values | cens(cens_lor) ~ cYear + (cYear | Site), family = lognormal())
+              }
             } else {
-              ## form <- bf(Values ~ cYear + (cYear | Site), family = Gamma(link = "log"))
-              form <- bf(Values ~ cYear + (cYear | Site), family = gaussian(link = "log"))
+              if (family == "gamma") {
+                form <- bf(Values ~ cYear + (cYear | Site), family = Gamma(link = "log"))
+              } else if (family == "gaussian"){
+                form <- bf(Values ~ cYear + (cYear | Site), family = gaussian(link = "log"))
+              } else {
+                form <- bf(Values ~ cYear + (cYear | Site), family = lognormal())
+              }
             }
           } else {
             if (any(.x$lor_flag) & !all(.x$lor_flag)) {
-              ## form <- bf(Values | cens(cens_lor) ~ 1 + (1 | Site), family = Gamma(link = "log"))
-              form <- bf(Values | cens(cens_lor) ~ 1 + (1 | Site), family = gaussian(link = "log"))
+              if (family == "gamma") {
+                form <- bf(Values | cens(cens_lor) ~ 1 + (1 | Site), family = Gamma(link = "log"))
+              } else if (family == "gaussian"){
+                form <- bf(Values | cens(cens_lor) ~ 1 + (1 | Site), family = gaussian(link = "log"))
+              } else {
+                form <- bf(Values | cens(cens_lor) ~ 1 + (1 | Site), family = lognormal())
+              }
             } else {
-              ## form <- bf(Values ~ 1 + (1 | Site), family = Gamma(link = "log"))
-              form <- bf(Values ~ 1 + (1 | Site), family = gaussian(link = "log"))
+              if (family == "gamma") {
+                form <- bf(Values ~ 1 + (1 | Site), family = Gamma(link = "log"))
+              } else if (family == "gaussian"){
+                form <- bf(Values ~ 1 + (1 | Site), family = gaussian(link = "log"))
+              } else {
+                form <- bf(Values ~ 1 + (1 | Site), family = lognormal())
+              }
             }
           }
           if (any(.x$Replicate_flag) | any(.x$Duplicate_flag)) {
@@ -220,7 +244,7 @@ prepare_formula <- function(data) {
   )
 }
 
-prepare_priors <- function(data) {
+prepare_priors <- function(data, family = "gamma") {
   status::status_try_catch(
   {
     data |>
@@ -235,8 +259,17 @@ prepare_priors <- function(data) {
           int_sd <- max(1, round(dat_sum[1, "lValues_sd"], 2)[[1]])
           sd_sd <- max(1, round(mean(dat_sum[, "lValues_sd"][[1]]), 2)[[1]], na.rm = TRUE)
           priors <- prior_string(paste0("student_t(3, ", int_mu, ", ", int_sd, ")"), class = "Intercept") +
-            prior_string(paste0("student_t(3, 0, ", sd_sd, ")"), class = "sd", coef = "Intercept", group = "Site") ## +
-            ## prior(gamma(0.01, 0.01), class = "shape")
+            prior_string(paste0("student_t(3, 0, ", sd_sd, ")"),
+              class = "sd", coef = "Intercept", group = "Site") 
+          if (family == "gamma") {
+            priors <- priors + prior(gamma(0.01, 0.01), class = "shape")
+          } else if (family == "gaussian") {
+            priors <- priors + prior_string(paste0("student_t(3, 0, ",
+              sd_sd, ")"), class = "sigma")
+          } else {
+            priors <- priors + prior_string(paste0("student_t(3, 0, ",
+              sd_sd, ")"), class = "sigma")
+          }
           if (nrow(dat_sum) > 1) {
             b_sd <- max(1, round(abs(max(diff(dat_sum[, "lValues_mean"][[1]]))), 2))
             priors <- priors + prior_string(paste0("student_t(3, 0, ", b_sd, ")"), class = "b") 
@@ -1011,22 +1044,95 @@ get_cellmeans_posteriors <- function(dat, mod) {
       ##   by = "contrast") |> 
       group_by(contrast, Baseline) 
   } else {
-    newdata <- dat |>
-      dplyr::select(Site, cYear) |>
-      mutate(Sample = NA) |> 
-      droplevels()
-    cm <-
-      mod |>
-      posterior_linpred(newdata = newdata, allow_new_levels = TRUE) |>
-      as.matrix() %*% cmat |>
-      exp() |>
-      as_tibble() |>
-      pivot_longer(cols = c(everything()), names_to = "contrast", values_to = "value") |>
-      as_draws_df() |>
-      filter(contrast != "Baseline") |>
-      left_join(dat |> dplyr::select(contrast = cYear, Baseline), by = "contrast") |>
-      group_by(contrast, Baseline) |>
-      suppressWarnings() |> suppressMessages()
+    method <- "new"
+    if (method == "old") {
+      newdata <- dat |>
+        dplyr::select(Site, cYear) |>
+        mutate(Sample = NA) |> 
+        droplevels()
+      cm <-
+        mod |>
+        posterior_linpred(newdata = newdata, allow_new_levels = TRUE) |>
+        as.matrix() %*% cmat |>
+        exp() |>
+        as_tibble() |>
+        pivot_longer(cols = c(everything()), names_to = "contrast", values_to = "value") |>
+        as_draws_df() |>
+        filter(contrast != "Baseline") |>
+        left_join(dat |> dplyr::select(contrast = cYear, Baseline), by = "contrast") |>
+        group_by(contrast, Baseline) |>
+        suppressWarnings() |> suppressMessages()
+    } else { #method == "new
+      set.seed(123)
+      drws <- mod |>
+        as_draws_df() 
+      if ("shape" %in% colnames(drws) & mod$family$family == "gamma") {
+        shape <- drws |>
+          pull(shape)
+        n <- length(shape)
+        cm <-
+          dat |> 
+          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+            Values),
+            by = c("Site", "cYear")) |> 
+          dplyr::select(Site, cYear, Baseline, Values) |>
+          group_by(Site, cYear, Baseline) |>
+          summarise(Values = median(Values)) |>  ## average over samples
+          mutate(v = map(.x = Values,
+            .f =  ~ {
+              n <- 1000
+              data.frame(.draw = 1:n, value = rgamma(n = n, shape = shape, scale = .x/shape))
+            })) |> 
+          unnest(v) |> 
+          ungroup() |> 
+          dplyr::select(contrast = cYear, value, .draw, Baseline) |>
+          suppressWarnings() |> suppressMessages()
+      } else if (mod$family$family == "gaussian"){
+        sigma <- drws |>
+          pull(sigma)
+        n <- length(sigma)
+        cm <-
+          dat |>
+          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+            Values),
+            by = c("Site", "cYear")) |> 
+          dplyr::select(Site, cYear, Baseline, Values) |>
+          group_by(Site, cYear, Baseline) |>
+          summarise(Values = median(Values)) |>  ## average over samples
+          mutate(v = map(.x = Values,
+            .f =  ~ {
+              n <- 1000
+              data.frame(.draw = 1:n, value = rnorm(n = n, mean = .x, sd = sigma))
+            })) |>
+          unnest(v) |> 
+          ungroup() |> 
+          dplyr::select(contrast = cYear, value, .draw, Baseline) |>
+          arrange(.draw) |>
+          suppressWarnings() |> suppressMessages()
+      } else if (mod$family$family == "lognormal"){
+        sigma <- drws |>
+          pull(sigma)
+        n <- length(sigma)
+        cm <-
+          dat |>
+          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+            Values),
+            by = c("Site", "cYear")) |> 
+          dplyr::select(Site, cYear, Baseline, Values) |>
+          group_by(Site, cYear, Baseline) |>
+          summarise(Values = median(Values)) |>  ## average over samples
+          mutate(v = map(.x = Values,
+            .f =  ~ {
+              n <- 1000
+              data.frame(.draw = 1:n, value = exp(rnorm(n = n, mean = log(.x), sd = sigma)))
+            })) |>
+          unnest(v) |> 
+          ungroup() |> 
+          dplyr::select(contrast = cYear, value, .draw, Baseline) |>
+          arrange(.draw) |>
+          suppressWarnings() |> suppressMessages()
+      }
+    }
   }
   cm |>
     mutate(scale = unique(dat$scale)) |>
@@ -1046,6 +1152,8 @@ get_effects_posteriors <- function(dat, mod) {
       ungroup() |>
       group_by(contrast)
   } else {  ## site level
+    method <- "new"
+    if (method == "old") {
     newdata <- dat |>
       dplyr::select(Site, cYear) |>
       mutate(Sample = NA) |> 
@@ -1064,6 +1172,111 @@ get_effects_posteriors <- function(dat, mod) {
       ungroup() |>
       group_by(contrast) |>
       suppressWarnings() |> suppressMessages()
+    } else {  ## new
+      drws <- mod |>
+        as_draws_df() 
+      if ("shape" %in% colnames(drws) & mod$family$family == "gamma") {
+        shape <- drws |>
+          pull(shape)
+        n <- length(shape)
+        eff <-
+          dat |>
+          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+            Values),
+            by = c("Site", "cYear")) |> 
+          dplyr::select(Site, cYear, Baseline, Values) |>
+          group_by(Site, cYear, Baseline) |>
+          summarise(Values = median(Values)) |>  ## average over samples
+          mutate(v = map(.x = Values,
+            .f =  ~ {
+              n <- 1000
+              data.frame(.draw = 1:n, value = rgamma(n = n, shape = shape, scale = .x/shape))
+            })) |>
+          unnest(v) |> 
+          ungroup() |>
+          dplyr::select(.draw, cYear, value) |>
+          pivot_wider(id_cols = .draw, names_from = cYear, values_from
+            = value) |>
+          dplyr::select(-.draw) |> 
+          as.matrix() %*% cmat |> 
+          as_draws_df() |>
+          pivot_longer(
+            cols = contains("vs"),
+            names_to = "contrast",
+            values_to = ".value"
+          ) |> 
+          ungroup() |>
+          group_by(contrast) |>
+          suppressWarnings() |> suppressMessages()
+      } else if (mod$family$family == "gaussian"){
+        sigma <- drws |>
+          pull(sigma)
+        n <- length(sigma)
+        eff <-
+          dat |>
+          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+            Values),
+            by = c("Site", "cYear")) |> 
+          dplyr::select(Site, cYear, Baseline, Values) |>
+          group_by(Site, cYear, Baseline) |>
+          summarise(Values = median(Values)) |>  ## average over samples
+          mutate(v = map(.x = Values,
+            .f =  ~ {
+              n <- 1000
+              data.frame(.draw = 1:n, value = rnorm(n = n, mean = .x, sd = sigma))
+            })) |>
+          unnest(v) |> 
+          ungroup() |>
+          dplyr::select(.draw, cYear, value) |>
+          pivot_wider(id_cols = .draw, names_from = cYear, values_from
+            = value) |>
+          dplyr::select(-.draw) |> 
+          as.matrix() %*% cmat |> 
+          as_draws_df() |>
+          pivot_longer(
+            cols = contains("vs"),
+            names_to = "contrast",
+            values_to = ".value"
+          ) |> 
+          ungroup() |>
+          group_by(contrast) |>
+          suppressWarnings() |> suppressMessages()
+      } else if (mod$family$family == "lognormal"){
+        sigma <- drws |>
+          pull(sigma)
+        n <- length(sigma)
+        eff <-
+          dat |>
+          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+            Values),
+            by = c("Site", "cYear")) |> 
+          dplyr::select(Site, cYear, Baseline, Values) |>
+          group_by(Site, cYear, Baseline) |>
+          summarise(Values = median(Values)) |>  ## average over samples
+          mutate(v = map(.x = Values,
+            .f =  ~ {
+              n <- 1000
+              data.frame(.draw = 1:n, value = exp(rnorm(n = n, mean = log(.x), sd = sigma)))
+            })) |>
+          unnest(v) |> 
+          ungroup() |>
+          dplyr::select(.draw, cYear, value) |>
+          pivot_wider(id_cols = .draw, names_from = cYear, values_from
+            = value) |>
+          dplyr::select(-.draw) |> 
+          as.matrix() %*% cmat |> 
+          as_draws_df() |>
+          pivot_longer(
+            cols = contains("vs"),
+            names_to = "contrast",
+            values_to = ".value"
+          ) |> 
+          ungroup() |>
+          group_by(contrast) |>
+          suppressWarnings() |> suppressMessages()
+      }
+      
+    }
   }
   eff |> mutate(scale = unique(dat$scale)) |> 
     group_by(scale, .add = TRUE)

@@ -1,3 +1,4 @@
+## run ../debug.sh first
 setwd("R")
 options(width = 80)
 unloadNamespace("status")
