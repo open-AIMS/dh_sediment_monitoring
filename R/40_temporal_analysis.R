@@ -83,7 +83,7 @@ module_temporal <- function() {
       distinct())
   
 
-  ## Site level effects
+  ## Site level effects  (4657)
   data <- readRDS(file = paste0(data_path, "modelled/data.RData"))
   data_site <- compile_posteriors(data, scale = "site")
   data_site <- collect_results(data_site, scale = "site")
@@ -1072,7 +1072,9 @@ get_cellmeans_posteriors <- function(dat, mod) {
         n <- length(shape)
         cm <-
           dat |> 
-          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+          left_join(mod$data |>
+                      ## dplyr::select(Site, cYear, Sample,
+                      dplyr::select(any_of(c("Site", "cYear", "Sample")),
             Values),
             by = c("Site", "cYear")) |> 
           dplyr::select(Site, cYear, Baseline, Values) |>
@@ -1093,7 +1095,9 @@ get_cellmeans_posteriors <- function(dat, mod) {
         n <- length(sigma)
         cm <-
           dat |>
-          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+          left_join(mod$data |>
+                      ## dplyr::select(Site, cYear, Sample,
+                      dplyr::select(any_of(c("Site", "cYear", "Sample")),
             Values),
             by = c("Site", "cYear")) |> 
           dplyr::select(Site, cYear, Baseline, Values) |>
@@ -1115,7 +1119,9 @@ get_cellmeans_posteriors <- function(dat, mod) {
         n <- length(sigma)
         cm <-
           dat |>
-          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+          left_join(mod$data |>
+                      ## dplyr::select(Site, cYear, Sample,
+                      dplyr::select(any_of(c("Site", "cYear", "Sample")),
             Values),
             by = c("Site", "cYear")) |> 
           dplyr::select(Site, cYear, Baseline, Values) |>
@@ -1181,7 +1187,9 @@ get_effects_posteriors <- function(dat, mod) {
         n <- length(shape)
         eff <-
           dat |>
-          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+          left_join(mod$data |>
+                      ## dplyr::select(Site, cYear, Sample,
+                      dplyr::select(any_of(c("Site", "cYear", "Sample")),
             Values),
             by = c("Site", "cYear")) |> 
           dplyr::select(Site, cYear, Baseline, Values) |>
@@ -1214,7 +1222,9 @@ get_effects_posteriors <- function(dat, mod) {
         n <- length(sigma)
         eff <-
           dat |>
-          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+          left_join(mod$data |>
+                      ## dplyr::select(Site, cYear, Sample,
+                      dplyr::select(any_of(c("Site", "cYear", "Sample")),
             Values),
             by = c("Site", "cYear")) |> 
           dplyr::select(Site, cYear, Baseline, Values) |>
@@ -1247,7 +1257,9 @@ get_effects_posteriors <- function(dat, mod) {
         n <- length(sigma)
         eff <-
           dat |>
-          left_join(mod$data |> dplyr::select(Site, cYear, Sample,
+          left_join(mod$data |>
+                      ## dplyr::select(Site, cYear, Sample,
+                      dplyr::select(any_of(c("Site", "cYear", "Sample")),
             Values),
             by = c("Site", "cYear")) |> 
           dplyr::select(Site, cYear, Baseline, Values) |>
