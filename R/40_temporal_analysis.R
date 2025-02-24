@@ -949,7 +949,8 @@ compile_posteriors_site <- function(data, scale = "site") {
 get_all_posteriors <- function(fit, l_d, nm, nm_l, scale) {
   nm_cm <- str_replace(nm, "effects_", "cellmeans_posteriors_")
   nm_e <- str_replace(nm, "effects_", "effects_posteriors_")
-  if (!file.exists(nm)) {
+  ## if (!file.exists(nm)) {
+  if (!(file.exists(nm) & file.exists(nm_cm) & file.exists(nm_e))) {
     comp <- NULL
     if (length(unique(l_d$Baseline)) > 1) {
       l_d <- l_d |>
@@ -957,16 +958,20 @@ get_all_posteriors <- function(fit, l_d, nm, nm_l, scale) {
         distinct()
       ## Calculate cellmeans posteriors
       ## print("cellmeans")
-      pstrs_cm <- get_cellmeans_posteriors(l_d, readRDS(file = fit))
-      saveRDS(pstrs_cm, file = nm_cm)
+      if (!file.exists(nm_cm)) {
+        pstrs_cm <- get_cellmeans_posteriors(l_d, readRDS(file = fit))
+        saveRDS(pstrs_cm, file = nm_cm)
+      }
       ## Calculate contrast posteriors
       ## print("effects")
-      pstrs_e <- get_effects_posteriors(l_d, readRDS(file = fit))
-      saveRDS(pstrs_e, file = nm_e)
-      ## Summarise contrasts
-      ## print("comp")
-      comp <- get_effects_summ(pstrs_e)
-      saveRDS(comp, file = nm)
+      if (!file.exists(nm_e)) {
+        pstrs_e <- get_effects_posteriors(l_d, readRDS(file = fit))
+        saveRDS(pstrs_e, file = nm_e)
+        ## Summarise contrasts
+        ## print("comp")
+        comp <- get_effects_summ(pstrs_e)
+        saveRDS(comp, file = nm)
+      }
     }
     cat("\t - model successfully compared\n", file = nm_l, append = TRUE)
   } else {
@@ -1088,6 +1093,7 @@ get_cellmeans_posteriors <- function(dat, mod) {
           unnest(v) |> 
           ungroup() |> 
           dplyr::select(contrast = cYear, value, .draw, Baseline) |>
+          group_by(contrast, Baseline) |>
           suppressWarnings() |> suppressMessages()
       } else if (mod$family$family == "gaussian"){
         sigma <- drws |>
@@ -1112,6 +1118,7 @@ get_cellmeans_posteriors <- function(dat, mod) {
           ungroup() |> 
           dplyr::select(contrast = cYear, value, .draw, Baseline) |>
           arrange(.draw) |>
+          group_by(contrast, Baseline) |>
           suppressWarnings() |> suppressMessages()
       } else if (mod$family$family == "lognormal"){
         sigma <- drws |>
@@ -1136,6 +1143,7 @@ get_cellmeans_posteriors <- function(dat, mod) {
           ungroup() |> 
           dplyr::select(contrast = cYear, value, .draw, Baseline) |>
           arrange(.draw) |>
+          group_by(contrast, Baseline) |>
           suppressWarnings() |> suppressMessages()
       }
     }

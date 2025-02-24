@@ -371,7 +371,7 @@ output[["analysis-trend-plot"]] <- renderPlot({
   ## print("I am here")
   req(mod_value_details())
   dat <- mod_value_details()
- ## print(dat)
+  ## print(dat)
   dt <- dat$processed_data |>
     _[[1]]
   ## dt <- select_details_model()$data 
@@ -390,15 +390,18 @@ output[["analysis-trend-plot"]] <- renderPlot({
   ## dat <- dat_value()
   d <- dat$nm_cm |>
     _[[1]]
+  ## print(d)
   if (!is.null(d)) {
     d <- d |>
       readRDS() |>
       get_cellmeans_summ() |>
       mutate(across(c(median, lower, upper), ~ round(.x, 3))) |>
       filter(contrast != "Baseline")
+    ## print(d)
     d <- d |>
       mutate(Year = as.numeric(as.character(contrast)))
     ## if (input$analysis_main_scale_selector != "site") {
+    ## print(d)
     if (input$analysis_main_scale_selector != "site") {
       d <- d |>
         mutate(Baseline = ifelse(Year < 2021, TRUE, FALSE))
@@ -464,6 +467,7 @@ output[["analysis-effects-table"]] <- reactable::renderReactable({
   dat <- mod_value_details()
   d <- dat$summ_e |>
     _[[1]]
+  ## print(d)
   if (!is.null(d)) {
     d <- d |>
       derive_change()
