@@ -517,6 +517,22 @@ adjust_names_for_replicates_and_duplicates <- function(df) {
   df1
 }
 
+
+##' Rolling mean
+##'
+##' Rolling mean
+##' @title Rolling mean 
+##' @param x
+##' @param window the rolling mean window
+##' @return a vector 
+##' @author Murray Logan
+rolling_mean <- function(x, window) {
+  sapply(seq_along(x), function(i) {
+    start <- max(1, i - window + 1)  # Ensure we don't go below index 1
+    mean(x[start:i])  # Compute mean on available values
+  })
+}
+
 ##' Standardise metals
 ##'
 ##' Standardise metals
@@ -535,14 +551,30 @@ standardise_metals <- function(df) {
       names_from = Var,
       values_from = values
     ) |>
+    ## Start by calculating the Fe/Al ratio per sample
     ## start with Ag, Co, Cu, Hg, Ni, Pb and Zn
     ## - if Fe/Al < 1.3, val*50000/Fe
     ## - if Fe/Al > 1.3, val*20000/Al
     mutate(`Fe/Al` = `Fe (mg/kg)` / `Al (mg/kg)`,
       Fe_Al_normalisation = ifelse(`Fe/Al` < 1.3, 'Al', 'Fe')) |>
-    ## Determine the most recent Normalisation group - use this for normalising
-    group_by(Site_ID) |>
-    mutate(Normalised_against = Fe_Al_normalisation[which.max(Acquire_date_time)]) |>
+    ## Now calculate the average ratio over the last 5 years (as a
+    ## rolling mean
+    group_by(Site) |>
+    mutate(
+      ## `Original_Fe/Al` = `Fe/Al`,
+      `Fe/Al` = rolling_mean(`Fe/Al`, window = 5),
+      Fe_Al_normalisation = ifelse(`Fe/Al` < 1.3, 'Al', 'Fe'),
+      Normalised_against = Fe_Al_normalisation
+    ) |>
+    ungroup() |>
+    ## OLD:Determine the most recent Normalisation group - use this
+    ## for normalising
+    ## NEW:Determine the most common Normalisation group - use this
+    ## for all (if there is a tie, Al wins)
+    ## group_by(Site_ID) |>
+    group_by(Site) |>
+    ## mutate(Normalised_against = Fe_Al_normalisation[which.max(Acquire_date_time)]) |>
+    mutate(Normalised_against = names(which.max(table(Fe_Al_normalisation)))) |>
     ungroup() |>
     ## Flag sites in which the normalisation group has changed (different from most recent)
     ## Although this is being applied to the entire row, it is not relevant to V and hydrocarbons
