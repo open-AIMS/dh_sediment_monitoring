@@ -378,31 +378,37 @@ fit_models <- function(data) {
             ## utils::capture.output(
             ##   mod <- invisible(update(mod_template,
             ## mod <- update(mod_template,
-            mod <- brm(form = l_f,
-              ## newdata = l_d,
-              data = l_d,
-              prior = l_p,
-              sample_prior = "yes",
-              ## recompile = recom,
-              ## recompile = FALSE,
-              iter = 5000,
-              chains = 3, cores = 3,
-              warmup = 1000,
-              thin = 5,
-              backend = "cmdstanr",
-              refresh = 0,
-              silent = 2,
-              file = nm,
-              file_refit = "on_change",
-              seed = 123,
-              control = list(adapt_delta = 0.95)
-              ##   ) |> suppressWarnings() |> suppressMessages()),
-              ##   ## file = nullfile(),
-              ##  cd file = nm_l,
-              ##   append = TRUE
-              ## )
-            )
-            cat("\t - model successfully fit\n", file = nm_l, append = TRUE)
+            if (nrow(l_d) < 5) {
+              nm <- NULL
+              cat("\t - too few data to fit model\n", file = nm_l, append = TRUE)
+              return(nm)
+            } else {
+              mod <- brm(form = l_f,
+                ## newdata = l_d,
+                data = l_d,
+                prior = l_p,
+                sample_prior = "yes",
+                ## recompile = recom,
+                ## recompile = FALSE,
+                iter = 5000,
+                chains = 3, cores = 3,
+                warmup = 1000,
+                thin = 5,
+                backend = "cmdstanr",
+                refresh = 0,
+                silent = 2,
+                file = nm,
+                file_refit = "on_change",
+                seed = 123,
+                control = list(adapt_delta = 0.95)
+                ##   ) |> suppressWarnings() |> suppressMessages()),
+                ##   ## file = nullfile(),
+                ##  cd file = nm_l,
+                ##   append = TRUE
+                ## )
+              )
+              cat("\t - model successfully fit\n", file = nm_l, append = TRUE)
+            }
           } else {
             cat("\t - loaded from previous run\n", file = nm_l, append = TRUE)
           }
@@ -707,30 +713,36 @@ validate_models <- function(data) {
             sprintf("% 3.1f%%", 100 * (i / total_number_of_models)), "): ",
             unique(l_d$ZoneName), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
           ), file = nm_l, append = TRUE)
-          if (!file.exists(nm)) {
-            mod <- readRDS(mod_s)
-            capture.output(
-              resids <- make_brms_dharma_res(mod, integerResponse = FALSE) |>
-                suppressWarnings() |>
-                suppressMessages(),
-              file = nullfile()
-            )
-            saveRDS(resids, file = nm)
-            capture.output(
-              v <- validate_model(resids) |>
-                suppressWarnings() |>
-                suppressMessages(),
-              file = nullfile()
-            )
-            df <- data.frame(nm = nm) |> bind_cols(v)
-            saveRDS(df, file = nm2)
-            cat("\t - model successfully validated\n", file = nm_l, append = TRUE)
+          if (is.null(mod_s)) {
+            cat("\t - model not found\n", file = nm_l, append = TRUE)
+            return(NULL)
           } else {
-            df <- readRDS(file = nm2)
-            v <- df |> dplyr::select(-nm)
-            cat("\t - model previously validated\n", file = nm_l, append = TRUE)
+            
+            if (!file.exists(nm)) {
+              mod <- readRDS(mod_s)
+              capture.output(
+                resids <- make_brms_dharma_res(mod, integerResponse = FALSE) |>
+                  suppressWarnings() |>
+                  suppressMessages(),
+                file = nullfile()
+              )
+              saveRDS(resids, file = nm)
+              capture.output(
+                v <- validate_model(resids) |>
+                  suppressWarnings() |>
+                  suppressMessages(),
+                file = nullfile()
+              )
+              df <- data.frame(nm = nm) |> bind_cols(v)
+              saveRDS(df, file = nm2)
+              cat("\t - model successfully validated\n", file = nm_l, append = TRUE)
+            } else {
+              df <- readRDS(file = nm2)
+              v <- df |> dplyr::select(-nm)
+              cat("\t - model previously validated\n", file = nm_l, append = TRUE)
+            }
+            cbind(nm, v)
           }
-          cbind(nm, v)
         },
         .progress = TRUE
       ))
@@ -848,6 +860,9 @@ compile_posteriors_zone <- function(data, scale = "zone") {
           l_d <- ..1
           fit <- ..2
           i <- ..3
+          if (is.null(fit)) {
+            return(list(nm_cm = NULL, nm_e = NULL, comp = NULL))
+          }
           nm <- str_replace(fit, "mod_", "effects_")
           ## print(nm)
           ## print(i)
