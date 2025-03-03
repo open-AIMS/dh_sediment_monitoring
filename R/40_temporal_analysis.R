@@ -987,8 +987,10 @@ get_all_posteriors <- function(fit, l_d, nm, nm_l, scale) {
         comp <- get_effects_summ(pstrs_e)
         saveRDS(comp, file = nm)
       }
+      cat("\t - model successfully compared\n", file = nm_l, append = TRUE)
+    } else {
+      cat("\t - model skipped (only baseline or non-baseline data present)\n", file = nm_l, append = TRUE)
     }
-    cat("\t - model successfully compared\n", file = nm_l, append = TRUE)
   } else {
     comp <- readRDS(file = nm) |> ungroup()
     cat("\t - model previously compared\n", file = nm_l, append = TRUE)
