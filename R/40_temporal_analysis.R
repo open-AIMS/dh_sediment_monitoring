@@ -541,6 +541,9 @@ make_contrasts_baseline_vs_years <- function(dat) {
       B = forcats::fct_relevel(B, "TRUE"),
       C = ifelse(Baseline, -1, 1)
     )
+  if (nrow(d) == 1) {
+    return(NULL)
+  }
   ## Contrasts of baseline vs each other year
   m <- model.matrix(~ -1 + B, data = d)
   cmat <-
@@ -641,6 +644,10 @@ make_contrasts_baseline_and_years <- function(dat) {
       B = forcats::fct_relevel(B, "TRUE"),
       C = ifelse(Baseline, -1, 1)
     )
+  ## If there is only one row (year), then there is nothing to compare to so skip
+  if (nrow(d) == 1) {
+    return(cbind(Baseline = 1))
+  }
   m <- model.matrix(~ -1 + B, data = d)  # combine 2019/2020 into baseline
   cmat <-
     sweep(m, 2, colSums(m), "/") |>
@@ -924,6 +931,9 @@ compile_posteriors_site <- function(data, scale = "site") {
             unique(l_d$Site), " ", unique(l_d$Var), " (", unique(l_d$Value_type), ")"
           ), file = nm_l, append = TRUE)
           ## print("here")
+          if (is.na(fit)) {
+            return(list(nm_cm = NULL, nm_e = NULL, comp = NULL))
+          }
           lst <- get_all_posteriors(fit, l_d, nm, nm_l, scale)
           ## if (!file.exists(nm)) {
           ##   comp <- NULL
@@ -984,8 +994,13 @@ get_all_posteriors <- function(fit, l_d, nm, nm_l, scale) {
         saveRDS(pstrs_e, file = nm_e)
         ## Summarise contrasts
         ## print("comp")
-        comp <- get_effects_summ(pstrs_e)
-        saveRDS(comp, file = nm)
+        if (is.null(pstrs_e)) {
+          comp <- NULL
+          saveRDS(comp, file = nm)
+        } else {
+          comp <- get_effects_summ(pstrs_e)
+          saveRDS(comp, file = nm)
+        }
       }
       cat("\t - model successfully compared\n", file = nm_l, append = TRUE)
     } else {
@@ -1048,6 +1063,9 @@ get_cellmeans_posteriors <- function(dat, mod) {
     ##         emmeans(~cYear) |>
     ##         contrast(method = list(cYear = cmat)) 
     ## )
+    if (is.null(cmat) | !"cYear" %in% colnames(mod$data)) {
+      return(NULL)
+    }
     cm <- mod |>
       emmeans(~cYear) |>
       contrast(method = list(cYear = cmat)) |>
@@ -1173,6 +1191,9 @@ get_cellmeans_posteriors <- function(dat, mod) {
 get_effects_posteriors <- function(dat, mod) {
   cmat <- make_contrasts_baseline_vs_years(dat)
   if (unique(dat$scale) == "zone") {
+    if ((is.null(cmat) & !"cYear" %in% colnames(mod$data))) {
+      return(NULL)
+    }
     eff <- mod |>
       emmeans(~cYear) |>
       contrast(method = list(cYear = cmat)) |>
@@ -1434,9 +1455,13 @@ collect_results_all <- function(data) {
 get_cellmeans_posteriors_area <- function(cm) {
   spatial_lookup <- readRDS(file = paste0(data_path, "processed/spatial_lookup.RData"))
   zones <- unique(cm$ZoneName)
-  cm |>
+  cm <- cm |>
     dplyr::select(ZoneName, cm) |>
-    unnest(c(cm)) |>
+    unnest(c(cm))
+  if (nrow(cm) == 0) {
+    return(NULL)
+  }
+  cm |> 
     left_join(spatial_lookup |>
                 filter(ZoneName %in% zones) |>
                 dplyr::select(ZoneName, Area, Zone_weights) |>
@@ -1454,9 +1479,13 @@ get_cellmeans_posteriors_area <- function(cm) {
 get_effects_posteriors_area <- function(e) {
   spatial_lookup <- readRDS(file = paste0(data_path, "processed/spatial_lookup.RData"))
   zones <- unique(e$ZoneName)
-  e |> 
+  e <- e |> 
     dplyr::select(ZoneName, e) |>
-    unnest(c(e)) |>
+    unnest(c(e)) 
+  if (nrow(e) == 0) {
+    return(NULL)
+  }
+  e |> 
     left_join(spatial_lookup |>
                 filter(ZoneName %in% zones) |>
                 dplyr::select(ZoneName, Area, Zone_weights) |>
@@ -1511,7 +1540,11 @@ get_all_posteriors_area <- function(.x) {
 
   ## Summarise contrasts
   new_nm <- str_replace(new_nm_e, "posteriors_", "")
-  comp <- get_effects_summ(pstrs_e)
+  if (is.null(pstrs_e)) {
+    comp <- NULL
+  } else {
+    comp <- get_effects_summ(pstrs_e)
+  }
   saveRDS(comp, file = new_nm)
 
   list(nm_cm = nm_cm, nm_e = nm_e, comp = comp)
