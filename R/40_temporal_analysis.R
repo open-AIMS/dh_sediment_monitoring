@@ -1007,7 +1007,12 @@ get_all_posteriors <- function(fit, l_d, nm, nm_l, scale) {
       cat("\t - model skipped (only baseline or non-baseline data present)\n", file = nm_l, append = TRUE)
     }
   } else {
-    comp <- readRDS(file = nm) |> ungroup()
+    comp <- readRDS(file = nm)
+    if (is.null(comp)) {
+      comp <- NULL
+    } else {
+     comp <- comp |> ungroup()
+    }
     cat("\t - model previously compared\n", file = nm_l, append = TRUE)
   }
   list(nm_cm = nm_cm, nm_e = nm_e, comp = comp)
