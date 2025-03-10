@@ -2,6 +2,23 @@
 output$analysis_overview <- renderUI({
   req(analysis_data())
   data <- analysis_data()
+  ### tests ====
+  ## print(data |> dim())
+  ## data |>
+  ## mutate(lor_flag = map(.x = processed_data, .f =  ~ any(.x$lor_flag))) |> 
+  ## dplyr::select(-scale) |> 
+  ## unnest(c(summ_e)) |>
+  ## dplyr::select(scale, Site, Type, Var, Value_type, contrast,
+  ##               Normalised_against, change, year, lor_flag) |>
+  ## filter(
+  ##   scale == "site", #input$analysis_overview_scale_type_selector,
+  ##   Value_type == "Unstandardised", #input$analysis_overview_value_type_selector,
+  ##   year == 2024, #input$analysis_overview_year_selector,
+  ##   ## year == 2023, #input$analysis_overview_year_selector,
+  ##   Var == "Al (mg/kg)",
+  ##   contrast == "2024 - 2023" #input$analysis_overview_contrast_selector
+  ## ) |> filter(Site == "IH_01") |> print()
+  ##############
   ## effect_years <- data |>
   ##   ## dplyr::select(ZoneName, Type, Var, Value_type, effects) |>
   ##   dplyr::select(ZoneName, Type, Var, Value_type, Normalised_against, summ_e) |>
@@ -152,6 +169,33 @@ output$analysis_overview <- renderUI({
                 ##   })
                 ## )
             } else if (input$analysis_overview_scale_type_selector == "site") {
+              ## data |>
+              ##   mutate(lor_flag = map(.x = processed_data, .f =  ~ any(.x$lor_flag))) |> 
+              ##   dplyr::select(-scale) |> 
+              ##   unnest(c(summ_e)) |>
+              ##   dplyr::select(scale, Site, Type, Var, Value_type, contrast,
+              ##     Normalised_against, change, year, lor_flag) |>
+              ##   filter(
+              ##     scale == "site", #input$analysis_overview_scale_type_selector,
+              ##     Value_type == "Unstandardised", #input$analysis_overview_value_type_selector,
+              ##     year == 2024, #input$analysis_overview_year_selector,
+              ##     ## year == 2023, #input$analysis_overview_year_selector,
+              ##     Var == "Al (mg/kg)",
+              ##     contrast == "2024 - 2023" #input$analysis_overview_contrast_selector
+              ##   ) |> filter(Site == "IH_01") |> print()
+
+              ## print(paste("analysis_overview_scale_type_selector:",
+              ##   input$analysis_overview_scale_type_selector))
+              ## print(paste("analysis_overview_normalised_type_selector:",
+              ##   input$analysis_overview_normalised_type_selector))
+              ## print(paste("analysis_overview_value_type_selector:",
+              ##   input$analysis_overview_value_type_selector))
+              ## print(paste("analysis_overview_year_selector:",
+              ##   input$analysis_overview_year_selector))
+              ## print(paste("analysis_overview_contrast_selector:",
+              ##   input$analysis_overview_contrast_selector))
+              
+              ## alert(data |> filter(scale == "site") |> dim())
               d <- data |>
                 mutate(lor_flag = map(.x = processed_data, .f =  ~ any(.x$lor_flag))) |> 
                 dplyr::select(-scale) |> 
@@ -166,7 +210,9 @@ output$analysis_overview <- renderUI({
                   Value_type == input$analysis_overview_value_type_selector,
                   year == input$analysis_overview_year_selector,
                   contrast == input$analysis_overview_contrast_selector
-                ) |> 
+                ) |>
+              ## print(as.data.frame(d |> filter(Site == "IH_01", Var == "Al (mg/kg)")))
+              ## d <- d |> 
                 ## Type == input$analysis_overview_type_selector,
                 ## str_detect(contrast, "2023")) |>
                 filter(case_when(
@@ -185,7 +231,7 @@ output$analysis_overview <- renderUI({
                 dplyr::select(-lor_flag) |>
                   pivot_wider(id_cols = everything(), names_from = Var, values_from = change) |>
                 dplyr::select(-scale, -Type, -Normalised_against) |> 
-                mutate(Site = as.character(Site)) |>
+                mutate(Site = as.character(Site)) |> 
                 overview_reactable()
                 ## reactable(
                 ##   pagination = FALSE,

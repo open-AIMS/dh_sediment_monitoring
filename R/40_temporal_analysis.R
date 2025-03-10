@@ -553,17 +553,27 @@ make_contrasts_baseline_vs_years <- function(dat) {
     dplyr::select(matches("B[0-9]{4}")) |>
     dplyr::rename_with(function(x) str_replace(x, "B([0-9]{4})", "\\1 vs Baseline")) |> 
     as.matrix()
-  ## Contrasts of most recent year and previous
+  ## Contrast each year against each other year
   all_years <-
     d |>
     pull(cYear) |>
     as.character()
-  last_years <- all_years[(length(all_years) - 1):length(all_years)]
-  m1 <- data.frame(A = c(rep(0, length(all_years) - 2), -1, 1)) |>
-    dplyr::rename_with(function(x) str_replace(x, "A", paste0(last_years[2], " vs ", last_years[1]))) |>
-    as.matrix()
+  xmat <- emmeans:::tukey.emmc(all_years) |> as.matrix()
+  xmat_rev <- emmeans:::tukey.emmc(rev(all_years)) |> as.matrix() |>
+    apply(2, rev)
   
-  cbind(cmat, m1)
+  ## ## Contrasts of most recent year and previous
+  ## all_years <-
+  ##   d |>
+  ##   pull(cYear) |>
+  ##   as.character()
+  ## last_years <- all_years[(length(all_years) - 1):length(all_years)]
+  ## m1 <- data.frame(A = c(rep(0, length(all_years) - 2), -1, 1)) |>
+  ##   dplyr::rename_with(function(x) str_replace(x, "A", paste0(last_years[2], " vs ", last_years[1]))) |>
+  ##   as.matrix()
+  
+  ## cbind(cmat, m1)
+  cbind(cmat, xmat, xmat_rev)
 }
 
 compare_baseline_vs_years_posteriors <- function(dat, mod, nm) {
@@ -1036,10 +1046,12 @@ get_effects_summ <- function(pstrs_e) {
       Pg > 0.85 ~ 3,
       .default = 4
     )) |> 
-    mutate(year = str_extract(contrast, "[0-9]{4}")) |>
-      dplyr::select(-variable) |>
-      ungroup() |>
-      suppressWarnings() |> suppressMessages()
+    mutate(year = str_extract(contrast, "[0-9]{4}")
+      ## year2 =  str_extract(contrast, "(.*) (.*)$", group = 2)
+    ) |>
+    dplyr::select(-variable) |>
+    ungroup() |>
+    suppressWarnings() |> suppressMessages()
 }
 
 
@@ -1260,7 +1272,7 @@ get_effects_posteriors <- function(dat, mod) {
           as.matrix() %*% cmat |> 
           as_draws_df() |>
           pivot_longer(
-            cols = contains("vs"),
+            cols = contains(c("vs", "-")),
             names_to = "contrast",
             values_to = ".value"
           ) |> 
@@ -1295,7 +1307,7 @@ get_effects_posteriors <- function(dat, mod) {
           as.matrix() %*% cmat |> 
           as_draws_df() |>
           pivot_longer(
-            cols = contains("vs"),
+            cols = contains(c("vs", "-")),
             names_to = "contrast",
             values_to = ".value"
           ) |> 
@@ -1319,7 +1331,8 @@ get_effects_posteriors <- function(dat, mod) {
           mutate(v = map(.x = Values,
             .f =  ~ {
               n <- 1000
-              data.frame(.draw = 1:n, value = exp(rnorm(n = n, mean = log(.x), sd = sigma)))
+              ## data.frame(.draw = 1:n, value = exp(rnorm(n = n, mean = log(.x), sd = sigma)))
+              data.frame(.draw = 1:n, value = (rnorm(n = n, mean = log(.x), sd = sigma)))
             })) |>
           unnest(v) |> 
           ungroup() |>
@@ -1328,9 +1341,10 @@ get_effects_posteriors <- function(dat, mod) {
             = value) |>
           dplyr::select(-.draw) |> 
           as.matrix() %*% cmat |> 
+          exp() |> 
           as_draws_df() |>
           pivot_longer(
-            cols = contains("vs"),
+            cols = contains(c("vs", "-")),
             names_to = "contrast",
             values_to = ".value"
           ) |> 

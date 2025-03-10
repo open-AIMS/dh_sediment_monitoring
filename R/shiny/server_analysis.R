@@ -23,7 +23,7 @@ sub_data <- reactiveVal()                             ## data pool from which to
 observeEvent(input$runAnalysisCode, {
   status::display_status_terminal()
   prom <- promises::future_promise({
-    module_temporal()
+    ## module_temporal()   ##put this back..
     readRDS(file = paste0(data_path, "modelled/data_all.RData")) |>
       mutate(Normalised_against = ifelse(is.na(Normalised_against), "", Normalised_against))
   })
