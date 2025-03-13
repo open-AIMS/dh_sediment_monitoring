@@ -45,54 +45,54 @@ module_load_data <- function() {
 ##' @author Murray Logan
 ##' @export
 read_input_data <- function(input_path) {
-        ## Get the filenames and types of any files in the `input_path` folder
-        status::status_try_catch(
-                {
-                        files <- list.files(
-                                path = input_path, pattern = ".*\\.csv|.*\\.xlsx",
-                                full.names = TRUE
-                        )
-                        file_types <- gsub(".*(xlsx|csv)$", "\\1", files)
-                },
-                stage_ = 2,
-                name_ = "Read input info",
-                item_ = "read_input_info"
-        )
-        ## Read in the input files and construct a raw data list
-        status::status_try_catch(
-                {
-                        raw_data <- vector(mode = "list", length = length(files))
-                        names(raw_data) <- basename(files)
-                        raw_data <- Map(raw_data, seq_along(raw_data), f = function(x, i) {
-                                if (file_types[i] == "xlsx") {
-                                        sheet_names <- readxl::excel_sheets(files[i])
-                                        ## Only include the sheets matching the desired patterns
-                                        patterns <- c("^[mM]etals$|^[hH]ydrocarbons|^[tT]otal_[cC]arbons$|^[mM]etadata|^[nN]otes")
-                                        assign("patterns", patterns, envir = .GlobalEnv)
-                                        sheet_names <- sheet_names |> str_subset(pattern = paste(patterns, collapse = "|"))
-                                        sheets <- lapply(sheet_names, readxl::read_excel, path = files[i])
-                                        ## standardise sheet names
-                                        replacements <- c("metals", "hydrocarbons", "total_carbons", "metadata", "notes")
-                                        sheet_names <- stringr::str_replace_all(sheet_names, patterns, replacements)
-                                        sheets <- setNames(sheets, sheet_names)
-                                        sheets[replacements] <-
-                                                lapply(sheets[replacements], function(x) { ## Remove columns whose names start with '...'
-                                                        x |> dplyr::select(-starts_with("..."))
-                                                })
-                                } else if (file_types[i] == "csv") {
-                                        sheets <- list(data = readr::read_csv(files[i]))
-                                }
-                                x <- list(
-                                        path = files[i],
-                                        file_type = file_types[i]
-                                )
-                                x <- append(x, sheets)
-                        })
-                },
-                stage_ = 2,
-                name_ = "Read input data",
-                item_ = "read_input_data"
-        )
+  ## Get the filenames and types of any files in the `input_path` folder
+  status::status_try_catch(
+  {
+    files <- list.files(
+      path = input_path, pattern = ".*\\.csv|.*\\.xlsx",
+      full.names = TRUE
+    )
+    file_types <- gsub(".*(xlsx|csv)$", "\\1", files)
+  },
+  stage_ = 2,
+  name_ = "Read input info",
+  item_ = "read_input_info"
+  )
+  ## Read in the input files and construct a raw data list
+  status::status_try_catch(
+  {
+    raw_data <- vector(mode = "list", length = length(files))
+    names(raw_data) <- basename(files)
+    raw_data <- Map(raw_data, seq_along(raw_data), f = function(x, i) {
+      if (file_types[i] == "xlsx") {
+        sheet_names <- readxl::excel_sheets(files[i])
+        ## Only include the sheets matching the desired patterns
+        patterns <- c("^[mM]etals$|^[hH]ydrocarbons|^[tT]otal_[cC]arbons$|^[mM]ercury|^[mM]etadata|^[nN]otes")
+        assign("patterns", patterns, envir = .GlobalEnv)
+        sheet_names <- sheet_names |> str_subset(pattern = paste(patterns, collapse = "|"))
+        sheets <- lapply(sheet_names, readxl::read_excel, path = files[i])
+        ## standardise sheet names
+        replacements <- c("metals", "hydrocarbons", "total_carbons", "mercury", "metadata", "notes")
+        sheet_names <- stringr::str_replace_all(sheet_names, patterns, replacements)
+        sheets <- setNames(sheets, sheet_names)
+        sheets[replacements] <-
+          lapply(sheets[replacements], function(x) { ## Remove columns whose names start with '...'
+            x |> dplyr::select(-starts_with("..."))
+          })
+      } else if (file_types[i] == "csv") {
+        sheets <- list(data = readr::read_csv(files[i]))
+      }
+      x <- list(
+        path = files[i],
+        file_type = file_types[i]
+      )
+      x <- append(x, sheets)
+    })
+  },
+  stage_ = 2,
+  name_ = "Read input data",
+  item_ = "read_input_data"
+  )
 }
 
 
@@ -116,34 +116,34 @@ fix_dates <- function(raw_data) {
   status::status_try_catch(
   {
     raw_data <- lapply(raw_data, function(x) {
-            nms <- c(
-                    "metals", "hydrocarbons", "total_carbons",
-                    "metadata", "notes"
-            )
-            d <- lapply(nms, function(sheet) {
-                    ## determine the class of each column
-                    classes <- lapply(x[[sheet]], "class")
-                    ## which of the columns have "date_time" in their names
-                    wch <- str_which(names(classes), "date_time")
-                    ## which of these are numeric
-                    wch_numeric <- which(classes[wch] == "numeric")
-                    ## get the name of any numeric date_time fields
-                    nms_numeric_dates <- names(classes)[wch[wch_numeric]]
-                    if (length(wch_numeric) > 0) {
-                            ## convert the excel numeric into POSIXct
-                            x[[sheet]] <- x[[sheet]] |>
-                                    mutate(across(
-                                            any_of(nms_numeric_dates),
-                                            function(t) {
-                                                    as.POSIXct(t * (60 * 60 * 24),
-                                                            origin = "1899-12-30", tz = "GMT"
-                                                    )
-                                            }
-                                    ))
-                    }
-                    x[[sheet]]
-            })
-            setNames(d, nm = nms)
+      nms <- c(
+        "metals", "hydrocarbons", "total_carbons", "mercury",
+        "metadata", "notes"
+      )
+      d <- lapply(nms, function(sheet) {
+        ## determine the class of each column
+        classes <- lapply(x[[sheet]], "class")
+        ## which of the columns have "date_time" in their names
+        wch <- str_which(names(classes), "date_time")
+        ## which of these are numeric
+        wch_numeric <- which(classes[wch] == "numeric")
+        ## get the name of any numeric date_time fields
+        nms_numeric_dates <- names(classes)[wch[wch_numeric]]
+        if (length(wch_numeric) > 0) {
+          ## convert the excel numeric into POSIXct
+          x[[sheet]] <- x[[sheet]] |>
+            mutate(across(
+              any_of(nms_numeric_dates),
+              function(t) {
+                as.POSIXct(t * (60 * 60 * 24),
+                  origin = "1899-12-30", tz = "GMT"
+                )
+              }
+            ))
+        }
+        x[[sheet]]
+      })
+      setNames(d, nm = nms)
     })
     raw_data
   },
@@ -167,7 +167,7 @@ validate_input_data <- function(raw_data) {
   status::status_try_catch(
   {
     raw_data_validation <- lapply(raw_data, function(x) {
-      nms <- c("metals", "hydrocarbons", "total_carbons",
+      nms <- c("metals", "hydrocarbons", "total_carbons", "mercury",
         "metadata", "notes")
       data_type <- "regular"
       v <- lapply(nms, function(sheet) {
@@ -263,7 +263,7 @@ get_rule_templates <- function(data_type = "regular", sheet_type = "data") {
               "Ca (mg/kg)", "metal",
               "Cr (mg/kg)", "metal",
               "Sb (mg/kg)", "metal",
-              "Hg (mg/kg)", "metal",
+              ## "Hg (mg/kg)", "metal",
           ),
           hydrocarbons = tribble(
               ~item, ~applied_to,
@@ -277,6 +277,11 @@ get_rule_templates <- function(data_type = "regular", sheet_type = "data") {
               ~item, ~applied_to,
               "Sample_ID", "site",
               "TOC (%)", "toc",
+          ),
+          mercury = tribble(
+              ~item, ~applied_to,
+              "Sample_ID", "site",
+              "Hg (mg/kg)", "metal",
           ),
           ## data = tribble(
           ##     ~item, ~applied_to,
@@ -416,57 +421,57 @@ run_validations <- function(df, data_type, sheet_type) {
     df <- df |> mutate(id = 1:n())
   }
   targets <-
-          get_rule_templates(data_type, sheet_type) |>
-          dplyr::nest_by(item, .key = "rule_template", .keep = TRUE) |>
-          dplyr::mutate(rules = list(rule_template |>
-                                  dplyr::left_join(get_rules(), by = "applied_to", relationship = "many-to-many") |>
-                                  mutate(
-                                          rule = stringr::str_replace_all(rule, "<NAME>", item),
-                                          description = stringr::str_replace_all(description, "<NAME>", item)
-                                  )
-                  ),
-                  validate = list(validate::validator(.data = rules)),
-                  confront = list(validate::confront(df, validate, key = "id")),
-                  summary = list(summary(confront))
-          )
+    get_rule_templates(data_type, sheet_type) |>
+    dplyr::nest_by(item, .key = "rule_template", .keep = TRUE) |>
+    dplyr::mutate(rules = list(rule_template |>
+                                 dplyr::left_join(get_rules(), by = "applied_to", relationship = "many-to-many") |>
+                                 mutate(
+                                   rule = stringr::str_replace_all(rule, "<NAME>", item),
+                                   description = stringr::str_replace_all(description, "<NAME>", item)
+                                 )
+    ),
+    validate = list(validate::validator(.data = rules)),
+    confront = list(validate::confront(df, validate, key = "id")),
+    summary = list(summary(confront))
+    )
   if (nrow(df) > 0) {
     targets <- targets |>
       mutate(df = list(validate::as.data.frame(confront) |>
-                 dplyr::filter(!value) |>
-                 dplyr::left_join(df, by = "id") |>
-                 dplyr::left_join(rules |>
-                           dplyr::select(name, severity, description) |>
-                           dplyr::distinct(),
+                         dplyr::filter(!value) |>
+                         dplyr::left_join(df, by = "id") |>
+                         dplyr::left_join(rules |>
+                                            dplyr::select(name, severity, description) |>
+                                            dplyr::distinct(),
                            by = "name")
       ),
       status = list({
         msg <- "success"
         if (nrow(df) > 0) {
-            if (unique(df$severity) == "fail") {
-                msg <- paste("Failure:", paste(unique(df$description), collapse = ", "))
-            } else {
-                msg <- paste("Warning:", paste(unique(df$description), collapse = ", "))
-            }
+          if (unique(df$severity) == "fail") {
+            msg <- paste("Failure:", paste(unique(df$description), collapse = ", "))
+          } else {
+            msg <- paste("Warning:", paste(unique(df$description), collapse = ", "))
+          }
         }
         msg
       })
-    )
+      )
   } else {
     targets <-
       targets |>
       dplyr::mutate(
         df = list(
           df |>
-          dplyr::mutate(value = FALSE, id = NA) |>
+            dplyr::mutate(value = FALSE, id = NA) |>
             dplyr::bind_rows(rules |>
                                dplyr::select(name, severity, expression = rule, description) |>
                                dplyr::distinct()) |>
-          dplyr::select(id, name, value, expression, everything(), severity, description)
+            dplyr::select(id, name, value, expression, everything(), severity, description)
         ),
-       status = list( {
-         msg <- paste("Warning:", paste(unique(df$description), collapse = ", "))
-         msg
-       })
+        status = list( {
+          msg <- paste("Warning:", paste(unique(df$description), collapse = ", "))
+          msg
+        })
       )
   }
   return(targets)

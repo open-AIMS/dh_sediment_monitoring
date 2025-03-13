@@ -96,10 +96,12 @@ apply_LoRs <- function(raw_data) {
       xx[grepl("^<.*", x)] <- xx[grepl("^<.*", x)]/lor_value
       xx
     }
-    dt <- c("metals", "hydrocarbons")
+    dt <- c("metals", "hydrocarbons", "mercury")
     df <- lapply(raw_data, function(df) {
       df[dt] <- lapply(dt, function(x) {
         if (x == "metals") {
+          tmplt <- "^[A-Z][a-z]?\\s\\(mg/kg\\)$"
+        } else if (x == "mercury") {
           tmplt <- "^[A-Z][a-z]?\\s\\(mg/kg\\)$"
         } else {
           tmplt <- "^>C[0-9].*[^l][^o][^r]$"
@@ -156,11 +158,12 @@ apply_LoRs <- function(raw_data) {
 pivot_data <- function(lst) {
   status::status_try_catch(
   {
-    dt <- c("metals", "hydrocarbons", "total_carbons")
+    dt <- c("metals", "hydrocarbons", "total_carbons", "mercury")
     df <- lapply(lst, function(df) {
       df[dt] <- lapply(dt, function(y) {
         tmplt <- switch(y,
           "metals" = "^[A-Z][a-z]?\\s\\(mg/kg\\)$",
+          "mercury" = "^[A-Z][a-z]?\\s\\(mg/kg\\)$",
           "hydrocarbons" = "^>C[0-9].*[^l][^o][^r]$",
           "total_carbons" = "TOC.*"
         )
@@ -212,7 +215,7 @@ pivot_data <- function(lst) {
 join_metadata <- function(lst) {
   status::status_try_catch(
   {
-    dt <- c("metals", "hydrocarbons", "total_carbons")
+    dt <- c("metals", "hydrocarbons", "total_carbons", "mercury")
     df <- lapply(lst, function(df) {
             df[dt] <- lapply(dt, function(y) {
                     nm1 <- names(df[[y]])
@@ -238,7 +241,7 @@ join_metadata <- function(lst) {
 make_sample_key <- function(data.lst) {
   status::status_try_catch(
   {
-    dt <- c("metals", "hydrocarbons", "total_carbons")
+    dt <- c("metals", "hydrocarbons", "total_carbons", "mercury")
     lapply(data.lst, function(df) {
       wch <- sapply(df[dt], function(x) nrow(x) > 0)
       df[dt[wch]] <- lapply(dt[wch], function(y) {
@@ -271,7 +274,7 @@ collate_data <- function(data.lst) {
   status::status_try_catch(
   {
     ## First collate metals, hydrocarbons and TOC within a dataset
-    dt <- c("metals", "hydrocarbons", "total_carbons")
+    dt <- c("metals", "hydrocarbons", "total_carbons", "mercury")
     data_comp <- lapply(data.lst, function(df) {
       wch <- sapply(df[dt], function(x) nrow(x) > 0)
       df[dt[wch]] <- lapply(dt[wch], function(y) {
