@@ -5,7 +5,6 @@ source("30_eda.R")
 observeEvent(input$runEDACode, {
   ## sedMod::module_eda()
   module_eda()
-  
   data <- readRDS(file = paste0(data_path, "processed/data.RData"))
   ## Temporal EDA
   ## plots <- sedMod::eda_temporal(data)

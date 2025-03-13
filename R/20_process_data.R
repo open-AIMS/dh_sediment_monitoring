@@ -32,7 +32,8 @@ module_process_data <- function() {
   data.list <- make_sample_key(data.list)
   
   ## Collate all the data together
-  data <- collate_data(data.list)
+  data <- collate_data(data.list) |>
+    mutate(Type = ifelse(Type == "mercury", "metals", Type))
 
   ## Add spatial information (based on Latitude and Longitude)
   data <- incorporate_spatial_data(data)
@@ -546,9 +547,13 @@ rolling_mean <- function(x, window) {
 standardise_metals <- function(df) {
   ## We need to take the lor flags out while we perform the standardisations
   ## These will be put back in via a join after the standardisations.
-  df_old <- df |> dplyr::select(Var, lor_flag, Sample_key)
+  df_old <- df |> dplyr::select(Var, lor_flag, Sample_key,
+    Baseline_site, Baseline_acquire_date_time,
+      Baseline, Replicate_flag, Duplicate_flag)
   df1 <- df |>
-    dplyr::select(-lor_flag) |> 
+    ## dplyr::select(-lor_flag) |> 
+    dplyr::select(-lor_flag, -Baseline_site, -Baseline_acquire_date_time,
+      -Baseline, -Replicate_flag, -Duplicate_flag) |> 
     pivot_wider(
       id_cols = everything(),
       names_from = Var,
@@ -657,8 +662,13 @@ standardise_metals <- function(df) {
                                       "Zn (mg/kg)"
                                     ) | Value_type == "Unstandardised",
         NA, Normalisation_flag)
-    )
-  df1 |> full_join(df_old, by = c("Sample_key", "Var")) 
+    ) |>
+    filter(!is.na(Values)) |>
+    droplevels()
+
+  df1 |> full_join(df_old, by = c("Sample_key", "Var")) |>
+    filter(!(is.na(Latitude) & is.na(Longitude) & is.na(Values))) |>
+    droplevels()
 }
 
 ##' Standardise hydrocarbons
@@ -759,7 +769,8 @@ create_site_lookup <- function(df) {
       dplyr::select(Site, Site_ID, Acquire_date_time) |>
       distinct() |>
       group_by(Site) |>
-      summarise(
+      ## summarise(
+      reframe(
         First_name = Site_ID[which.min(Acquire_date_time)],
         Last_name = Site_ID[which.max(Acquire_date_time)],
         Versions = n()

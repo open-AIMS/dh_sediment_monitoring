@@ -137,7 +137,12 @@ fix_dates <- function(raw_data) {
               function(t) {
                 as.POSIXct(t * (60 * 60 * 24),
                   origin = "1899-12-30", tz = "GMT"
-                )
+                ) |>
+                  ## round times to address an issue where displayed
+                  ## excel dates get rounded so it is not obvious that
+                  ## two dates are not actually the same if one is
+                  ## exported as a string and the other as a numeric
+                  round("mins")  
               }
             ))
         }
