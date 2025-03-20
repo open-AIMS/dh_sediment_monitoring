@@ -93,7 +93,7 @@
 %% Arsenic
 \begin{scope}
   \begin{pgfonlayer}{level1}
-    \node [minimum height = 3cm, text width = 2.5cm,
+    \node [minimum height = 4cm, text width = 2.5cm,
       anchor=north west, draw, Messy] at ($(v_box.south west) +(0,-0.25cm)$) (as_box) {};
   \end{pgfonlayer}
 \end{scope}
@@ -105,7 +105,7 @@
 
 \begin{scope}
   \begin{pgfonlayer}{level1}
-    \node [minimum height = 3cm, anchor=west, right = 0.5cm of as_box.east,
+    \node [minimum height = 4cm, anchor=west, right = 0.5cm of as_box.east,
       text width = 7cm, draw, Messy] (as_wh_box) {};
   \end{pgfonlayer}
 \end{scope}
@@ -120,6 +120,9 @@
     \node [anchor=west, Labels, text=blue] at ($(as_wh_outer.west) +(0,-0.7cm)$) {Mn (i.e As/Mn ratio)};
     \Arrow{$(as_wh_title.south) +(0.4, -0.2)$}{0.8}{0.15}{-140}{A1};
     \Arrow{$(as_wh_title.south) +(0.1, -0.0)$}{0.8}{0.15}{-40}{A2};
+
+    \node [anchor=center, below = 2.6cm of as_wh_box.north, text width = 2.5cm, title, Messy, Labels] (as_wh_title2) {Whole Harbour};
+    \node [anchor=north, Labels, text=blue] at ($(as_wh_title2.south) +(0,-0.1cm)$) {20,000 mg/kg Fe};
   \end{pgfonlayer}
 \end{scope}
 

@@ -472,22 +472,42 @@ required.
 
 ### Standardise data
 
-Data standardisation rules are summarised in @fig-standardisations.
-In the case of Fe/Al standardisations:
+All sediment metals and hydrocarbons are expressed and analysed in
+both raw and standardised forms. Data standardisation rules are
+summarised in @fig-standardisations.
+
+In the case of Fe/Al standardisations (which apply to Ag, Co, Cu, Hg,
+Ni, Pb and Zn):
 
 1. Fe/Al ratios are calculated per sample (observation).
 2. A five year rolling mean is then applied to the ratios to dampen
    extreme fluctuations
-3. According to the threshold of Fe/Al < 1.3, each sample is tagged
-   according to which of either Fe or Al it would originally be
-   standardised against.
+3. Using a threshold of Fe/Al < 1.3, each sample is tagged according
+   to which of either Fe or Al it would originally be standardised
+   against (if Fe/Al < 1.3, Al is used otherwise Fe).
 4. Within, each site, all values should be standardised the same way
    (e.g. either against Fe or Al, but not a mixture).  Hence, the most
    common form of standardisation is determined and used to
    standardise all observations in the series for a given site.
-5. During the step above, if the standardisation of an individual
+5. Standardisations against Al are $val\times(50,000/Al)$
+6. Standardisations against Fe are $val\times(20,000/Fe)$
+7. During the step above, if the standardisation of an individual
    observation was changed, then it is flagged
-   
+  
+Data standardisation rules for As:
+
+1. Inner Harbour samples are standardised against Fe
+   ($val\times(20,000/Fe)$)
+2. Outer Harbour samples are standardised against Mn
+   ($val/Mn$)
+3. An alternate form of standardation is also performed in which all
+   As samples are standardised against Fe ($val\times(20,000/Fe)$)
+
+Vanadium is always standardised against Fe ($val\times(20,000/Fe)$).
+
+Finally, all hydrocarbons are standardised against Total Organic
+Carbon (TOC) ($val/TOC$).
+
 ```{r}
 #| label: fig-standardisations
 #| engine: tikz
@@ -498,7 +518,7 @@ In the case of Fe/Al standardisations:
 #| engine-opts:
 #|   template: "resources/tikz-standalone.tex"
 ```
-  
+     
 ### Create site lookup
 
 This task creates a lookup that maps sites to zones.
