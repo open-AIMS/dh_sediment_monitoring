@@ -515,20 +515,25 @@ output$download_modelled_data_cellmeans <- downloadHandler(
     modelled_data <- modelled_data |>
       dplyr::select(
         ZoneName, Site, Type, Var, Value_type, Normalised_against,
-        nm_cm
+        summ_cm
       ) |>
-      mutate(post_e = map(
-        .x = nm_cm,
-        .f = ~ {
-          if (is.null(.x)) return(NULL)
-          .x |>
-            readRDS() |>
-            get_cellmeans_summ() |>
-            mutate(across(c(median, lower, upper), ~ round(.x, 3)))
-          }
-      )) |> 
-      dplyr::select(-nm_cm) |> 
-      unnest(c(post_e)) |> 
+      unnest(c(summ_cm)) |>
+      ## dplyr::select(
+      ##   ZoneName, Site, Type, Var, Value_type, Normalised_against,
+      ##   nm_cm
+      ## ) |>
+      ## mutate(post_e = map(
+      ##   .x = nm_cm,
+      ##   .f = ~ {
+      ##     if (is.null(.x)) return(NULL)
+      ##     .x |>
+      ##       readRDS() |>
+      ##       get_cellmeans_summ() |>
+      ##       mutate(across(c(median, lower, upper), ~ round(.x, 3)))
+      ##     }
+      ## )) |> 
+      ## dplyr::select(-nm_cm) |> 
+      ## unnest(c(post_e)) |> 
       left_join(site_spatial)
     write.csv(modelled_data, file)
   }

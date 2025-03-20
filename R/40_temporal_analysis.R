@@ -878,7 +878,7 @@ compile_posteriors_zone <- function(data, scale = "zone") {
           fit <- ..2
           i <- ..3
           if (is.null(fit)) {
-            return(list(nm_cm = NULL, nm_e = NULL, comp = NULL))
+            return(list(nm_cm = NULL, nm_e = NULL, comp = NULL, cm_summ = NULL))
           }
           nm <- str_replace(fit, "mod_", "effects_")
           ## print(nm)
@@ -984,9 +984,11 @@ compile_posteriors_site <- function(data, scale = "site") {
 get_all_posteriors <- function(fit, l_d, nm, nm_l, scale) {
   nm_cm <- str_replace(nm, "effects_", "cellmeans_posteriors_")
   nm_e <- str_replace(nm, "effects_", "effects_posteriors_")
+  summ_cm <- gsub("posteriors", "summ", nm_cm)
   ## if (!file.exists(nm)) {
   if (!(file.exists(nm) & file.exists(nm_cm) & file.exists(nm_e))) {
     comp <- NULL
+    cm_summ <- NULL
     if (length(unique(l_d$Baseline)) > 1) {
       l_d <- l_d |>
         mutate(scale = scale) |>
@@ -996,6 +998,14 @@ get_all_posteriors <- function(fit, l_d, nm, nm_l, scale) {
       if (!file.exists(nm_cm)) {
         pstrs_cm <- get_cellmeans_posteriors(l_d, readRDS(file = fit))
         saveRDS(pstrs_cm, file = nm_cm)
+        ## Summarise cellmeans
+        if (is.null(pstrs_cm)) {
+          cm_summ <- NULL
+          saveRDS(cm_summ, file = summ_cm)
+        } else {
+          cm_summ <- get_cellmeans_summ(pstrs_cm)
+          saveRDS(cm_summ, file = summ_cm)
+        }
       }
       ## Calculate contrast posteriors
       ## print("effects")
@@ -1018,6 +1028,7 @@ get_all_posteriors <- function(fit, l_d, nm, nm_l, scale) {
     }
   } else {
     comp <- readRDS(file = nm)
+    cm_summ <- readRDS(file = summ_cm)
     if (is.null(comp)) {
       comp <- NULL
     } else {
@@ -1025,7 +1036,7 @@ get_all_posteriors <- function(fit, l_d, nm, nm_l, scale) {
     }
     cat("\t - model previously compared\n", file = nm_l, append = TRUE)
   }
-  list(nm_cm = nm_cm, nm_e = nm_e, comp = comp)
+  list(nm_cm = nm_cm, nm_e = nm_e, comp = comp, cm_summ = cm_summ)
 }
 
 
@@ -1447,7 +1458,7 @@ collect_results_all <- function(data) {
         }
       }
     )) |> 
-    ## Cellmeans posteriors
+    ## Effects posteriors
     ## mutate(pstr_e = map(
     mutate(nm_e = map(
       .x = effects,
@@ -1467,6 +1478,12 @@ collect_results_all <- function(data) {
       .x = effects,
       .f = ~ {
         .x$comp
+      }
+    )) |> 
+    mutate(summ_cm = map(
+      .x = effects,
+      .f = ~ {
+        .x$cm_summ
       }
     ))
 }
