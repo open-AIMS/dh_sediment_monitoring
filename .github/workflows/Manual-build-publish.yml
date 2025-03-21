@@ -64,6 +64,7 @@ jobs:
 
       - name: Install additional LaTeX packages
         run: |
+          tlmgr update --self
           tlmgr install titlesec
           tlmgr list --only-installed
 
