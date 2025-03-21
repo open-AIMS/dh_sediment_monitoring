@@ -206,7 +206,7 @@
 \title{Darwin Harbour sediment monitoring program analysis application
 manual}
 \author{Murray Logan}
-\date{20/03/2025}
+\date{21/03/2025}
 
 \begin{document}
 \maketitle
@@ -397,7 +397,7 @@ structure is illustrated below for Windows.
    |- dataset2.xlsx
 \end{verbatim}
 
-\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, toprule=.15mm, bottomtitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, colback=white, rightrule=.15mm, left=2mm, toptitle=1mm, colbacktitle=quarto-callout-note-color!10!white, breakable, titlerule=0mm, arc=.35mm, bottomrule=.15mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, breakable, titlerule=0mm, bottomrule=.15mm, colframe=quarto-callout-note-color-frame, left=2mm, toprule=.15mm, rightrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, coltitle=black, arc=.35mm, leftrule=.75mm, bottomtitle=1mm, toptitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, opacitybacktitle=0.6, colback=white]
 
 In the above illustration, there are two example datasets
 (\texttt{dataset1.xlsx} and \texttt{dataset2.xlsx}). The datasets need
@@ -451,7 +451,7 @@ project folder. Navigate to and select the project folder before
 clicking the ``OK'' button. Shortly thereafter, the application will
 appear in a browser tab.
 
-\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, toprule=.15mm, bottomtitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{More specific information about the \texttt{deploy.bat} script}, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, colback=white, rightrule=.15mm, left=2mm, toptitle=1mm, colbacktitle=quarto-callout-note-color!10!white, breakable, titlerule=0mm, arc=.35mm, bottomrule=.15mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, breakable, titlerule=0mm, bottomrule=.15mm, colframe=quarto-callout-note-color-frame, left=2mm, toprule=.15mm, rightrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, coltitle=black, arc=.35mm, leftrule=.75mm, bottomtitle=1mm, toptitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{More specific information about the \texttt{deploy.bat} script}, opacitybacktitle=0.6, colback=white]
 
 The \texttt{deploy.bat} script performs the following:
 
@@ -898,7 +898,7 @@ in their respective tables):
   notes - this sheet is not processed or validated
 \end{itemize}
 
-\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, toprule=.15mm, bottomtitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, colback=white, rightrule=.15mm, left=2mm, toptitle=1mm, colbacktitle=quarto-callout-note-color!10!white, breakable, titlerule=0mm, arc=.35mm, bottomrule=.15mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, breakable, titlerule=0mm, bottomrule=.15mm, colframe=quarto-callout-note-color-frame, left=2mm, toprule=.15mm, rightrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, coltitle=black, arc=.35mm, leftrule=.75mm, bottomtitle=1mm, toptitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, opacitybacktitle=0.6, colback=white]
 
 All input data must be placed in the \texttt{/input} folder of the
 Project prior to starting the app.
@@ -1121,7 +1121,7 @@ below), site and zone level modelled trends can be inferred and
 thereafter aggregated up to Area and Whole of Harbour level trends as
 well.
 
-\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, toprule=.15mm, bottomtitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Bayesian hierarchical models}, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, colback=white, rightrule=.15mm, left=2mm, toptitle=1mm, colbacktitle=quarto-callout-note-color!10!white, breakable, titlerule=0mm, arc=.35mm, bottomrule=.15mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, breakable, titlerule=0mm, bottomrule=.15mm, colframe=quarto-callout-note-color-frame, left=2mm, toprule=.15mm, rightrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, coltitle=black, arc=.35mm, leftrule=.75mm, bottomtitle=1mm, toptitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Bayesian hierarchical models}, opacitybacktitle=0.6, colback=white]
 
 Hierarchical models are used to analyse data that are structured such
 that there are sampling units nested within higher order units in a
@@ -1271,8 +1271,8 @@ intercept (\(\beta_0\)), varying effects of site (\(\gamma_{s,0}\)) and
 annual changes in value (\(\gamma_{s,j}\)) as well as the population
 effects (\(\beta_1\)) of year (\(T\)). Weakly informative flat-t (3 df)
 priors were applied to the intercept and all population effect
-parameters. The values (\(\alpha_1\), \(alpha_2\) and \(\alpha_3\)) used
-to define the weakly informative priors were developed from simple
+parameters. The values (\(\alpha_1\), \(\alpha_2\) and \(\alpha_3\))
+used to define the weakly informative priors were developed from simple
 summary statistics of the raw data. A weakly informative gamma prior was
 applied to the dispersion parameter. The varying effects were assumed to
 follow a multivariate normal with a site-specific covariance structure
@@ -1291,6 +1291,64 @@ thinning rate of 5.
 Separate models are fit to each variable, for each appropriate
 standardisation type, for each zone. At the time of writing this manual,
 this equates to nearly 300 models.
+
+\paragraph{Site level analyses}\label{site-level-analyses}
+
+In the absence of systematic replication within a site at each sampling
+event along with either a sufficiently long temporal series or
+unrealistic assumptions (strictly linear changes), it is not possible
+for statistical models to decouple a signal (explained trend) from noise
+(unexplained variance). Yet, it is desireable for this application to be
+able to estimate change at a site level. Two possible approaches for
+estimating site level change in these circumstances are:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  derive site-level parameters from zone-level analyses that include
+  site-level parameters
+\item
+  derive estimates of typical background noise from zone-level analyses
+  to overlay onto site-level characteristics
+\end{enumerate}
+
+Although the zone level models did include site-specific parameters, the
+partial pooling nature of hierarchical models means that estimated
+site-level patterns are partially pooled towards the general zone-level
+trends. In essence, this is the model showing skepticism towards extreme
+observations in limited sites and is typically a desirable property.
+However, for the current application, where identification of the
+extremes is arguably of greatest importance, such a property is
+detrimental.
+
+The current application therefore opted for the second option. For each
+site and observed metal/hydrocarbon, the full posterior (1000 draws) of
+the unexplained variance (sigma) from the associated zone-level model
+was extracted. For each sampling event, shuffled (sampled with
+replacement) sigma posteriors (which are centered around zero and on a
+log-scale) were then added to the log of the observed (metal or
+hydrocarbon) value (averaged in the case of replicates or duplicates).
+Thus, each sampling event (year) was estimated by a 1000 draw posterior.
+The differences between each pair of sampling years (for each draw) were
+calculated and summarised as mean, median and 95\% Highest Posterior
+Density (HPD) intervals. Evidence of change between pairs of sampling
+years was calculated as the proportion of posterior differences greater
+than zero (for cases when the mean difference is greater than 0) or less
+than zero (for declines). Herein, these Bayesian Exceedance
+Probabilities (\(P_E\)) are interpreted according to the following:
+
+\begin{itemize}
+\tightlist
+\item
+  \(P_E\) \textgreater{} 0.95 (strong evidence of change)
+\item
+  \(P_E\) \textgreater{} 0.90 (evidence of change)
+\item
+  \(P_E\) \textgreater{} 0.85 (weak evidence of change)
+\item
+  \(P_E\) \textless{} 0.85 (no evidence of change)
+\end{itemize}
 
 \subsubsection{Retrieve data}\label{retrieve-data-1}
 
@@ -1523,7 +1581,7 @@ autoscroll such that the most recent log is at the bottom of the
 display. If the number of Log lines exceeds 10, a scroll bar will appear
 on the right side of the panel to help reviewing earlier Logs.
 
-\begin{tcolorbox}[enhanced jigsaw, left=2mm, toprule=.15mm, breakable, leftrule=.75mm, colframe=quarto-callout-color-frame, arc=.35mm, bottomrule=.15mm, colback=white, rightrule=.15mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, breakable, arc=.35mm, leftrule=.75mm, colframe=quarto-callout-color-frame, left=2mm, bottomrule=.15mm, toprule=.15mm, rightrule=.15mm, colback=white]
 
 Note
 
@@ -1545,7 +1603,7 @@ processing of individual statistical models.
 The Data page comprises two panels or subpages accessable by tabs named
 ``Raw data'' and ``Processed data'' at the top of the page.
 
-\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, toprule=.15mm, bottomtitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, colback=white, rightrule=.15mm, left=2mm, toptitle=1mm, colbacktitle=quarto-callout-note-color!10!white, breakable, titlerule=0mm, arc=.35mm, bottomrule=.15mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, breakable, titlerule=0mm, bottomrule=.15mm, colframe=quarto-callout-note-color-frame, left=2mm, toprule=.15mm, rightrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, coltitle=black, arc=.35mm, leftrule=.75mm, bottomtitle=1mm, toptitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, opacitybacktitle=0.6, colback=white]
 
 The contents of the Processed data subpage will not be revealed until
 the completion of Stage 3.
@@ -1611,7 +1669,7 @@ The Processed data panel displays the first 10 rows of the complete,
 compiled and processed data set. Descriptions of each field of these
 data are provided in the table below.
 
-\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, toprule=.15mm, bottomtitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, leftrule=.75mm, colframe=quarto-callout-note-color-frame, coltitle=black, colback=white, rightrule=.15mm, left=2mm, toptitle=1mm, colbacktitle=quarto-callout-note-color!10!white, breakable, titlerule=0mm, arc=.35mm, bottomrule=.15mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, breakable, titlerule=0mm, bottomrule=.15mm, colframe=quarto-callout-note-color-frame, left=2mm, toprule=.15mm, rightrule=.15mm, colbacktitle=quarto-callout-note-color!10!white, coltitle=black, arc=.35mm, leftrule=.75mm, bottomtitle=1mm, toptitle=1mm, title=\textcolor{quarto-callout-note-color}{\faInfo}\hspace{0.5em}{Note}, opacitybacktitle=0.6, colback=white]
 
 This panel will not become active until the completion of Stage 3.
 
@@ -1871,7 +1929,7 @@ downloaded as a single comma separated (csv) file via the
 \textbf{Download trends as csv} button. Notes on Longitude and Latitude
 are as above.
 
-\begin{tcolorbox}[enhanced jigsaw, opacitybacktitle=0.6, toprule=.15mm, bottomtitle=1mm, title=\textcolor{quarto-callout-important-color}{\faExclamation}\hspace{0.5em}{Important}, leftrule=.75mm, colframe=quarto-callout-important-color-frame, coltitle=black, colback=white, rightrule=.15mm, left=2mm, toptitle=1mm, colbacktitle=quarto-callout-important-color!10!white, breakable, titlerule=0mm, arc=.35mm, bottomrule=.15mm, opacityback=0]
+\begin{tcolorbox}[enhanced jigsaw, opacityback=0, breakable, titlerule=0mm, bottomrule=.15mm, colframe=quarto-callout-important-color-frame, left=2mm, toprule=.15mm, rightrule=.15mm, colbacktitle=quarto-callout-important-color!10!white, coltitle=black, arc=.35mm, leftrule=.75mm, bottomtitle=1mm, toptitle=1mm, title=\textcolor{quarto-callout-important-color}{\faExclamation}\hspace{0.5em}{Important}, opacitybacktitle=0.6, colback=white]
 
 The routine behind this later button involves compiling together all
 posteriors across all scales and summarising each of them. These steps
