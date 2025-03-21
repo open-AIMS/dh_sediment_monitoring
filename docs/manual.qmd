@@ -695,7 +695,7 @@ intercept ($\beta_0$), varying effects of site ($\gamma_{s,0}$) and
 annual changes in value ($\gamma_{s,j}$) as well as the population
 effects ($\beta_1$) of year ($T$). Weakly informative flat-t (3 df)
 priors were applied to the intercept and all population effect
-parameters. The values ($\alpha_1$, $alpha_2$ and $\alpha_3$) used to
+parameters. The values ($\alpha_1$, $\alpha_2$ and $\alpha_3$) used to
 define the weakly informative priors were developed from simple
 summary statistics of the raw data. A weakly informative gamma prior
 was applied to the dispersion parameter. The varying effects were
@@ -716,6 +716,55 @@ no-u-turn (NUTS) iterations, a warmup of 1000 and a thinning rate of
 Separate models are fit to each variable, for each appropriate
 standardisation type, for each zone. At the time of writing this
 manual, this equates to nearly 300 models.
+
+#### Site level analyses
+
+In the absence of systematic replication within a site at each
+sampling event along with either a sufficiently long temporal series
+or unrealistic assumptions (strictly linear changes), it is not
+possible for statistical models to decouple a signal (explained trend)
+from noise (unexplained variance). Yet, it is desireable for this
+application to be able to estimate change at a site level. Two
+possible approaches for estimating site level change in these
+circumstances are:
+
+1. derive site-level parameters from zone-level analyses that include
+   site-level parameters
+2. derive estimates of typical background noise from zone-level
+   analyses to overlay onto site-level characteristics
+
+Although the zone level models did include site-specific parameters,
+the partial pooling nature of hierarchical models means that estimated
+site-level patterns are partially pooled towards the general
+zone-level trends. In essence, this is the model showing skepticism
+towards extreme observations in limited sites and is typically a
+desirable property. However, for the current application, where
+identification of the extremes is arguably of greatest importance,
+such a property is detrimental.
+
+The current application therefore opted for the second option. For
+each site and observed metal/hydrocarbon, the full posterior (1000
+draws) of the unexplained variance (sigma) from the associated
+zone-level model was extracted. For each sampling event, shuffled
+(sampled with replacement) sigma posteriors (which are centered around
+zero and on a log-scale) were then added to the log of the observed
+(metal or hydrocarbon) value (averaged in the case of replicates or
+duplicates). Thus, each sampling event (year) was estimated by a 1000
+draw posterior. The differences between each pair of sampling years
+(for each draw) were calculated and summarised as mean, median and 95%
+Highest Posterior Density (HPD) intervals. Evidence of change between
+pairs of sampling years was calculated as the proportion of posterior
+differences greater than zero (for cases when the mean difference is
+greater than 0) or less than zero (for declines). Herein, these
+Bayesian Exceedance Probabilities ($P_E$) are interpreted according to
+the following:
+
+- $P_E$ > 0.95 (strong evidence of change)
+- $P_E$ > 0.90 (evidence of change)
+- $P_E$ > 0.85 (weak evidence of change)
+- $P_E$ < 0.85 (no evidence of change)
+
+
 
 ### Retrieve data
 
