@@ -52,6 +52,11 @@ crossref:
   fig-labels: arabic
   tbl-title: '**Table**'
   tbl-labels: arabic
+## the following is a workaround to get the path to manual.pdf correct
+format-links:
+  - html
+  - text: PDF
+    href: manual.pdf
 engine: knitr
 output_dir: "docs"
 documentclass: article
