@@ -675,9 +675,9 @@ The general form of the models employed is as follows:
 
 $$
 \begin{aligned}
-y_{i,s} &\sim{} \Gamma(\mu_{i,s}, \phi)\\
+y_{i,s} &\sim{} \mathit{logNormal}(\mu_{i,s}, \sigma)\\
 log(\mu_{i,s}) &= (\beta_0 + \gamma_{s[i],0}) + \sum_{j=1}^nT_{[i],j}.(\beta_j + \gamma_{s[i],j]})\\
-\phi&\sim\Gamma(0.01, 0.01)\\
+\sigma&\sim\mathit{t}(3, 0, 0.01, \alpha_1)\\
 \beta_0&\sim{}\mathit{t}(3, \alpha_1, \alpha_2)\\
 \beta_{[1,n]}&\sim{}\mathit{t}(3, 0, \alpha_3)\\
 \gamma_{[1..p]}&\sim{}MVN(0, \boldsymbol{\Sigma_s})\\
@@ -693,23 +693,23 @@ log(\mu_{i,s}) &= (\beta_0 + \gamma_{s[i],0}) + \sum_{j=1}^nT_{[i],j}.(\beta_j +
 $$
 
 The $i_{th}$ value ($y$) from the $s_{th}$ site was assumed to be
-drawn from a gamma ($\Gamma$) distribution parameterised by a mean
-($\mu_{i,s}$) and dispersion ($\phi$) respectively. The (natural log)
-expected means were described by a linear model that included an
-intercept ($\beta_0$), varying effects of site ($\gamma_{s,0}$) and
-annual changes in value ($\gamma_{s,j}$) as well as the population
-effects ($\beta_1$) of year ($T$). Weakly informative flat-t (3 df)
-priors were applied to the intercept and all population effect
-parameters. The values ($\alpha_1$, $\alpha_2$ and $\alpha_3$) used to
-define the weakly informative priors were developed from simple
-summary statistics of the raw data. A weakly informative gamma prior
-was applied to the dispersion parameter. The varying effects were
-assumed to follow a multivariate normal with a site-specific
-covariance structure whose variances follow a weakly informative flat
-t distribution and whose correlation follows a LJK distribution with
+drawn from a log-normal ($\mathit{LogNormal}$) distribution
+parameterised by a mean ($\mu_{i,s}$) and sigma ($\sigma$)
+respectively. The (natural log) expected means were described by a
+linear model that included an intercept ($\beta_0$), varying effects
+of site ($\gamma_{s,0}$) and annual changes in value ($\gamma_{s,j}$)
+as well as the population effects ($\beta_1$) of year ($T$). Weakly
+informative flat-t (3 df) priors were applied to the intercept and all
+population effect parameters as well as the residual noise ($\sigma$).
+The values ($\alpha_1$, $\alpha_2$ and $\alpha_3$) used to define the
+weakly informative priors were developed from simple summary
+statistics of the raw data. The varying effects were assumed
+to follow a multivariate normal with a site-specific covariance
+structure whose variances follow a weakly informative flat t
+distribution and whose correlation follows a LJK distribution with
 parameter of 1.
 
-When the data include values that are below the limit of detection,
+When the data included values that are below the limit of detection,
 the model outlined above is modified so as to apply left censoring.
 
 All Bayesian models were fit using the `brms` [@brms] package within
