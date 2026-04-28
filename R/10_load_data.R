@@ -13,6 +13,8 @@ module_load_data <- function() {
         raw_data <- read_input_data(input_path)
         saveRDS(raw_data, file = paste0(data_path, "primary/raw_data.RData"))
 
+    file.copy(from = log_file, to = external_log_file, overwrite = TRUE)
+
         raw_data <- fix_dates(raw_data)
         saveRDS(raw_data, file = paste0(data_path, "primary/raw_data.RData"))
         ## Validate the data
@@ -93,8 +95,6 @@ read_input_data <- function(input_path) {
   name_ = "Read input data",
   item_ = "read_input_data"
   )
-  file.copy(from = log_file, to = external_log_file, overwrite = TRUE)
-  return(x)
 }
 
 ##' Fix any numeric date/times within sheets
