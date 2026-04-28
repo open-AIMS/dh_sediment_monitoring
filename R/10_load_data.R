@@ -94,6 +94,7 @@ read_input_data <- function(input_path) {
   item_ = "read_input_data"
   )
   file.copy(from = log_file, to = external_log_file, overwrite = TRUE)
+  return(x)
 }
 
 ##' Fix any numeric date/times within sheets
