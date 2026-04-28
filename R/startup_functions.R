@@ -33,7 +33,7 @@ start_matter <- function(args = commandArgs()) {
   ## }
   prepare_paths()                                                    ## prepare file structure
 }
-
+ 
 ##' Initialise status
 ##'
 ##' This will call the status::status_initialize function
@@ -152,7 +152,10 @@ define_paths <- function() {
     ## location of the model_logs_file
     assign("model_log_file", paste0(data_path, "modelled/log_models.log"), env = .GlobalEnv)
     add_setting(element = "model_log_file", item = model_log_file, name = "Model Logs file")
-    
+   
+    ## location of the externally available logs_file
+    assign("external_log_file", paste0(data_path, "messages.log"), env = .GlobalEnv)
+    add_setting(element = "external_log_file", item = external_log_file, name = "Externa Logs file")
   },
   stage_ = 1,
   name_ = "Define paths",
