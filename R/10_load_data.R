@@ -9,7 +9,7 @@
 ##' @export
 module_load_data <- function() {
         status::status_set_stage(stage = 2, title = "Obtain data")
-
+cat("data files:",list.files(input_path), "\n", file = log_file, append = TRUE)
         raw_data <- read_input_data(input_path)
         saveRDS(raw_data, file = paste0(data_path, "primary/raw_data.RData"))
 
