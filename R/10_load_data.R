@@ -9,7 +9,10 @@
 ##' @export
 module_load_data <- function() {
         status::status_set_stage(stage = 2, title = "Obtain data")
-cat("data files:",list.files(input_path), "\n", file = log_file, append = TRUE)
+        cat("data files:",
+          list.files(input_path, pattern = ".*\\.csv|^[^~].*\\.xlsx", full.names = TRUE), "\n",
+          file = log_file, append = TRUE
+        )
         raw_data <- read_input_data(input_path)
         saveRDS(raw_data, file = paste0(data_path, "primary/raw_data.RData"))
 
@@ -51,7 +54,7 @@ read_input_data <- function(input_path) {
   status::status_try_catch(
   {
     files <- list.files(
-      path = input_path, pattern = ".*\\.csv|.*\\.xlsx",
+      path = input_path, pattern = ".*\\.csv|^[^~].*\\.xlsx",
       full.names = TRUE
     )
     file_types <- gsub(".*(xlsx|csv)$", "\\1", files)
